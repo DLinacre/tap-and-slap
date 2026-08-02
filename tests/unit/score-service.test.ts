@@ -39,7 +39,7 @@ class FakeRepo implements ScoreRepo {
   runs: Array<Record<string, unknown>> = [];
   better = 0;
   best: number | null = null;
-  existingByRunId: Record<string, Parameters<ScoreRepo["findRunByRunId"]> extends never ? never : any> = {};
+  existingByRunId: Record<string, NonNullable<Awaited<ReturnType<ScoreRepo["findRunByRunId"]>>>> = {};
 
   async createRun(data: Parameters<ScoreRepo["createRun"]>[0]): Promise<{ id: string }> {
     this.runs.push(data);
