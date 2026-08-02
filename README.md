@@ -10,15 +10,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/LIN4CRE/tap-and-slap/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff2ec4.svg" alt="MIT license"/></a>
+  <a href="https://github.com/DLinacre/tap-and-slap/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff2ec4.svg" alt="MIT license"/></a>
   <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15-black.svg?logo=nextdotjs&logoColor=white" alt="Next.js 15"/></a>
   <a href="https://phaser.io"><img src="https://img.shields.io/badge/Phaser-3.90-22d3ee.svg" alt="Phaser 3.90"/></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg?logo=typescript&logoColor=white" alt="TypeScript strict"/></a>
   <a href="https://www.prisma.io"><img src="https://img.shields.io/badge/Prisma-6-2d3748.svg?logo=prisma" alt="Prisma 6"/></a>
   <a href="https://vitest.dev"><img src="https://img.shields.io/badge/tests-74%20passing-a3e635.svg" alt="74 tests passing"/></a>
   <a href="https://www.playwright.dev"><img src="https://img.shields.io/badge/E2E-Playwright-2e6d4f.svg?logo=playwright&logoColor=white" alt="Playwright E2E"/></a>
-  <a href="https://github.com/LIN4CRE/tap-and-slap"><img src="https://img.shields.io/github/stars/LIN4CRE/tap-and-slap?style=social" alt="GitHub stars"/></a>
-  <a href="https://github.com/LIN4CRE/tap-and-slap/issues"><img src="https://img.shields.io/github/issues/LIN4CRE/tap-and-slap?color=ffd54a" alt="Issues"/></a>
+  <a href="https://github.com/DLinacre/tap-and-slap"><img src="https://img.shields.io/github/stars/DLinacre/tap-and-slap?style=social" alt="GitHub stars"/></a>
+  <a href="https://github.com/DLinacre/tap-and-slap/issues"><img src="https://img.shields.io/github/issues/DLinacre/tap-and-slap?color=ffd54a" alt="Issues"/></a>
   <img src="https://img.shields.io/badge/PRs-welcome-ff8a3d.svg" alt="PRs welcome"/>
 </p>
 
@@ -77,7 +77,7 @@ satisfying "pump" feel.
 ## 🚀 Quick start
 
 ```bash
-git clone https://github.com/LIN4CRE/tap-and-slap.git
+git clone https://github.com/DLinacre/tap-and-slap.git
 cd tap-and-slap
 npm install
 cp .env.example .env          # set AUTH_SECRET (dev fallback exists)
