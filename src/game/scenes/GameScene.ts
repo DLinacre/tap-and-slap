@@ -120,6 +120,17 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(BG_COLOR);
     this.buildBackground();
 
+    // Race-free idle reconciliation (see setIdle docs).
+    if (this.idleTimer === null) {
+      this.idleTimer = setInterval(() => this.syncIdle(), 100);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        if (this.idleTimer !== null) {
+          clearInterval(this.idleTimer);
+          this.idleTimer = null;
+        }
+      });
+    }
+
     this.player = new PlayerAvatar(this);
     this.pads = new HitPads(this, (lane) => this.hitLane(lane));
     this.inputCtrl = new InputController(this, (lane) => this.hitLane(lane));
@@ -256,7 +267,7 @@ export class GameScene extends Phaser.Scene {
     });
     useGameStore.getState().resetHud();
 
-    this.running = true;
+        this.running = true;
     this.cameras.main.shake(0, 0);
     audioEngine.ensureStarted();
     const trackId = useSettingsStore.getState().trackForLevel(slug, level.defaultTrack);
@@ -279,8 +290,33 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  /**
+   * Pause/resume the whole scene render+update loop when the shell moves to
+   * an idle screen (menu/gameover). Massive CPU/battery win: Phaser stops
+   * ticking at 60fps behind static React overlays. The musical clock and
+   * audio are NOT touched here (that's setRunPaused's job).
+   *
+   * IMPORTANT: Phaser's SceneManager can DEFER pause/resume ops issued while
+   * a scene is booting (they land a few frames later). To make idleness
+   * race-free we keep a desired state and reconcile it on a 100ms game-level
+   * interval, so a late-arriving pause is immediately corrected.
+   */
+  private idleDesired = false;
+  private idleTimer: ReturnType<typeof setInterval> | null = null;
+
+  setIdle(idle: boolean): void {
+    this.idleDesired = idle;
+    this.syncIdle();
+  }
+
+  private syncIdle(): void {
+    const paused = this.scene.isPaused();
+    if (this.idleDesired && !paused) this.scene.pause();
+    else if (!this.idleDesired && paused) this.scene.resume();
+  }
+
   setRunPaused(paused: boolean): void {
-    if (!this.running) return;
+        if (!this.running) return;
     if (paused) {
       this.clock.pause();
       audioEngine.pauseMusic();

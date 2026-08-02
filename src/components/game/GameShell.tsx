@@ -9,6 +9,7 @@ import { GameOverScreen } from "./GameOverScreen";
 import { PauseScreen } from "./PauseScreen";
 import { LoginModal } from "./LoginModal";
 import { NeonButton } from "@/components/ui/NeonButton";
+import { gameBridge } from "@/game/bridge";
 import { audioEngine } from "@/game/audio/AudioEngine";
 import { getLevels } from "@/game/levels/registry";
 import { useGameStore } from "@/store/game-store";
@@ -51,9 +52,13 @@ export function GameShell() {
       if (first) autoStart.current = { slug: first.slug, options: { autoplay: true, qa } };
     }
 
-    void fetchMe()
-      .then((user) => setPlayer(user))
-      .catch(() => setPlayer(null));
+    // Only probe the session endpoint when a session might exist — avoids a
+    // guaranteed 401 console error for guests on every load.
+    if (status !== "unauthenticated") {
+      void fetchMe()
+        .then((user) => setPlayer(user))
+        .catch(() => setPlayer(null));
+    }
     void flushPendingScores().then((n) => {
       if (n > 0) logger.info("flushed pending scores", { count: n });
     });
@@ -61,7 +66,12 @@ export function GameShell() {
     const onOnline = () => void flushPendingScores();
     window.addEventListener("online", onOnline);
     return () => window.removeEventListener("online", onOnline);
-  }, [setGuestId, setLevels, setPlayer]);
+  }, [setGuestId, setLevels, setPlayer, status]);
+
+  // --- Idle screens stop the engine loop (CPU/battery/heat win) --------------
+  useEffect(() => {
+    gameBridge.setIdle(screen !== "playing");
+  }, [screen]);
 
   // --- Session → player sync ------------------------------------------------
   useEffect(() => {

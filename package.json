@@ -2,7 +2,7 @@
   "name": "tap-and-slap",
   "version": "0.1.0",
   "private": true,
-  "description": "Tap & Slap — a dance-mat beat 'em up. Tap to kill enemies ON the beat. Built with Next.js 15 + Phaser 3 + TypeScript.",
+  "description": "Tap & Slap \u2014 a dance-mat beat 'em up. Tap to kill enemies ON the beat. Built with Next.js 15 + Phaser 3 + TypeScript.",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
@@ -49,11 +49,31 @@
     "eslint": "^9.25.0",
     "eslint-config-next": "^15.3.3",
     "jsdom": "^26.1.0",
+    "lighthouse": "^12.8.2",
     "phaser3spectorjs": "^0.0.8",
     "playwright": "^1.52.0",
     "prisma": "^6.5.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vitest": "^3.1.2"
+  },
+  "keywords": [
+    "beat-em-up",
+    "browser-game",
+    "dance-mat",
+    "nextjs",
+    "phaser",
+    "rhythm-game",
+    "synthwave",
+    "tap-game",
+    "typescript",
+    "web-game"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DLinacre/tap-and-slap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DLinacre/tap-and-slap/issues"
   }
 }

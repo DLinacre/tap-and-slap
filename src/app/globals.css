@@ -2,7 +2,8 @@
    Tap & Slap — global styles (neon synthwave theme)
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap");
+/* Orbitron is self-hosted via next/font (see layout.tsx) — no external
+   render-blocking font request. */
 
 :root {
   --bg: #0a0118;
@@ -16,7 +17,7 @@
   --text: #f4ecff;
   --text-dim: #b9a8d9;
   --radius: 14px;
-  --font: "Orbitron", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font: var(--font-orbitron), "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -47,6 +48,25 @@ button {
   border: none;
   background: none;
   color: inherit;
+}
+
+/* Visible keyboard focus (WCAG 2.2 2.4.7). */
+:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Respect reduced-motion preferences (WCAG 2.2 2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ------------------------------------------------------------------ layout */
@@ -83,7 +103,7 @@ button {
 
 .app-footer {
   padding: 8px 4px 2px;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   color: var(--text-dim);
   text-align: center;
@@ -202,7 +222,7 @@ button {
   padding: 18px 16px calc(24px + env(safe-area-inset-bottom));
   background:
     linear-gradient(180deg, rgba(10, 1, 24, 0.55) 0%, rgba(10, 1, 24, 0.88) 70%, rgba(10, 1, 24, 0.97) 100%),
-    url("/images/menu-backdrop.png") center 8% / cover no-repeat,
+    url("/images/menu-backdrop.jpg") center 8% / cover no-repeat,
     linear-gradient(180deg, rgba(10, 1, 24, 0.72), rgba(10, 1, 24, 0.94));
   display: flex;
   flex-direction: column;
@@ -272,7 +292,7 @@ button {
 .level-card__meta,
 .level-card__max {
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   display: block;
 }
@@ -390,13 +410,13 @@ button {
 }
 
 .track-item__tagline {
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--text-dim);
   letter-spacing: 0.04em;
 }
 
 .track-item__badge {
-  font-size: 8px;
+  font-size: 10px;
   color: var(--pink);
   border: 1px solid var(--pink);
   border-radius: 999px;
@@ -409,7 +429,22 @@ button {
   50% { opacity: 0.4; }
 }
 
-.menu__panel h3 {
+/* Native list semantics for the level selector (WCAG: no role overrides). */
+.menu__levels {
+  list-style: none;
+}
+
+.menu__levels li {
+  width: 100%;
+}
+
+.menu__levels-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu__panel h2 {
   font-size: 11px;
   letter-spacing: 0.2em;
   color: var(--cyan);
@@ -417,13 +452,13 @@ button {
 
 .menu__muted {
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.06em;
   line-height: 1.5;
 }
 
 .menu__tip {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-dim);
   line-height: 1.6;
   text-align: center;
@@ -461,7 +496,7 @@ button {
 .controls-hint {
   grid-column: 1 / -1;
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .slider-row {
@@ -520,7 +555,7 @@ button {
 
 .leaderboard__guest {
   margin-left: 6px;
-  font-size: 8px;
+  font-size: 10px;
   color: var(--text-dim);
   border: 1px solid var(--text-dim);
   border-radius: 4px;
@@ -799,7 +834,7 @@ button {
 }
 
 .results__submitted {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 

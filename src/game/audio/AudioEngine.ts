@@ -3,9 +3,10 @@
  *
  * No audio assets ship with the game: every track is synthesized at runtime
  * from the beat map (see tracks.ts for the fight-music registry). Sync model:
- * `AudioEngine` schedules notes on the AudioContext timeline derived from a
- * `performance.now()` epoch (`perfBase` ↔ `ctxBase`) — the same epoch
- * `BeatClock` uses, so visual and audio events cannot drift.
+ * all scheduling uses the ABSOLUTE AudioContext clock (`ctxBase` = ctx time at
+ * song start; event `when = ctxBase + songMs/1000`), so scheduled times are
+ * always non-negative and visuals (BeatClock) can be aligned to the same song
+ * position without drift.
  *
  * Mix chain (louder, club-ready):
  *   voice → musicBus/sfxBus → masterGain → compressor → limiter → destination
@@ -241,7 +242,7 @@ export class AudioEngine {
   private events: SongEvent[] = [];
   private nextEventIdx = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
-  private perfBase = 0;
+  /** AudioContext time corresponding to song time 0 (absolute ctx clock). */
   private ctxBase = 0;
   private musicPlaying = false;
   private barMs = 2000; // set per level on startMusic
@@ -323,8 +324,10 @@ export class AudioEngine {
     this.events = buildSong(level, track);
     this.nextEventIdx = 0;
     this.barMs = 4 * (60_000 / level.bpm);
-    this.perfBase = performance.now();
-    this.ctxBase = this.ctx.currentTime;
+    // Song time 0 maps to a moment just after "now" on the absolute
+    // AudioContext clock. Scheduling uses ONLY ctx time — never the
+    // performance.now() epoch — so scheduled times are always non-negative.
+    this.ctxBase = this.ctx.currentTime + 0.05;
     this.musicPlaying = true;
     this.timer = setInterval(() => this.tick(), TICK_MS);
   }
@@ -347,8 +350,7 @@ export class AudioEngine {
     this.events = buildSong(previewLevel, trackId).filter((e) => e.timeMs < 16 * (60_000 / 116));
     this.nextEventIdx = 0;
     this.barMs = 4 * (60_000 / 116);
-    this.perfBase = performance.now();
-    this.ctxBase = this.ctx.currentTime;
+    this.ctxBase = this.ctx.currentTime + 0.05;
     this.musicPlaying = true;
     this.timer = setInterval(() => this.tick(), TICK_MS);
   }
@@ -362,8 +364,9 @@ export class AudioEngine {
   resumeMusic(): void {
     if (!this.ctx) return;
     if (this.ctx.state === "suspended") void this.ctx.resume();
-    this.perfBase = performance.now();
-    this.ctxBase = this.ctx.currentTime;
+    // NOTE: ctxBase is intentionally NOT re-based. A suspended AudioContext
+    // freezes currentTime, so on resume it continues from the pause point and
+    // the original (songTime → ctxTime) mapping stays valid.
     if (this.musicPlaying && this.timer === null) {
       this.timer = setInterval(() => this.tick(), TICK_MS);
     }
@@ -385,7 +388,9 @@ export class AudioEngine {
 
   private tick(): void {
     if (!this.ctx) return;
-    const horizon = performance.now() - this.perfBase + LOOKAHEAD_MS;
+    // Song position from the ABSOLUTE ctx clock: never negative.
+    const songMs = (this.ctx.currentTime - this.ctxBase) * 1000;
+    const horizon = songMs + LOOKAHEAD_MS;
     while (this.nextEventIdx < this.events.length) {
       const ev = this.events[this.nextEventIdx]!;
       if (ev.timeMs > horizon) break;
@@ -396,7 +401,10 @@ export class AudioEngine {
 
   private scheduleEvent(ev: SongEvent): void {
     if (!this.ctx || !this.musicBus) return;
-    const when = this.ctxBase + (ev.timeMs - this.perfBase) / 1000;
+    // Absolute ctx time — always >= ctxBase > 0. Guard added as
+    // defense-in-depth: never schedule into the past.
+    const when = this.ctxBase + ev.timeMs / 1000;
+    if (when < 0) return;
     const vel = ev.velocity ?? 0.8;
     switch (ev.kind) {
       case "kick":

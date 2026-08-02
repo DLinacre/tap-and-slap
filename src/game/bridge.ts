@@ -57,6 +57,11 @@ class GameBridge {
     this.scene()?.teardownRun();
   }
 
+  /** Idle screens (menu/gameover): stop the engine loop to save CPU/battery. */
+  setIdle(idle: boolean): void {
+    this.scene()?.setIdle(idle);
+  }
+
   destroy(): void {
     this.game?.destroy(true);
     this.game = null;

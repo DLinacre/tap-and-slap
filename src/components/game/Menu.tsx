@@ -62,34 +62,36 @@ export function Menu({ onSignIn }: MenuProps) {
         Dance-mat beat <em>’em up</em> — tap to kill on the beat.
       </p>
 
-      <div className="menu__levels" role="list" aria-label="Levels">
-        {levels.map((level) => {
-          const meta: LevelMeta = metaFromDef(level);
-          const maxScore = expectedMaxScore(level);
-          const isSelected = selected?.slug === level.slug;
-          return (
-            <button
-              key={level.slug}
-              role="listitem"
-              className={`level-card ${isSelected ? "level-card--selected" : ""}`}
-              onClick={() => {
-                uiClick();
-                setSelectedSlug(level.slug);
-              }}
-            >
-              <span className="level-card__left">
-                <span className="level-card__title">{level.title}</span>
-                <span className="level-card__meta">
-                  {DIFFICULTY_LABEL[level.difficulty]} · {level.bpm} BPM · {meta.noteCount} notes
-                </span>
-              </span>
-              <span className="level-card__right">
-                <span className="level-card__duration">{meta.durationSec}s</span>
-                <span className="level-card__max">{maxScore.toLocaleString("en-US")} max</span>
-              </span>
-            </button>
-          );
-        })}
+      <div className="menu__levels-wrap">
+        <ul className="menu__levels" aria-label="Levels">
+          {levels.map((level) => {
+            const meta: LevelMeta = metaFromDef(level);
+            const maxScore = expectedMaxScore(level);
+            const isSelected = selected?.slug === level.slug;
+            return (
+              <li key={level.slug}>
+                <button
+                  className={`level-card ${isSelected ? "level-card--selected" : ""}`}
+                  onClick={() => {
+                    uiClick();
+                    setSelectedSlug(level.slug);
+                  }}
+                >
+                  <span className="level-card__left">
+                    <span className="level-card__title">{level.title}</span>
+                    <span className="level-card__meta">
+                      {DIFFICULTY_LABEL[level.difficulty]} · {level.bpm} BPM · {meta.noteCount} notes
+                    </span>
+                  </span>
+                  <span className="level-card__right">
+                    <span className="level-card__duration">{meta.durationSec}s</span>
+                    <span className="level-card__max">{maxScore.toLocaleString("en-US")} max</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </div>
 
       {selected && (
@@ -106,7 +108,7 @@ export function Menu({ onSignIn }: MenuProps) {
       )}
 
       <section className="menu__panel" aria-label="Soundtrack">
-        <h3>🎵 SOUNDTRACK — FIGHT MUSIC</h3>
+        <h2>🎵 SOUNDTRACK — FIGHT MUSIC</h2>
         <div className="track-list">
           {TRACK_LIST.map((track) => {
             const isActive = activeTrack === track.id;
@@ -133,13 +135,13 @@ export function Menu({ onSignIn }: MenuProps) {
 
       <div className="menu__columns">
         <section className="menu__panel" aria-label="Controls">
-          <h3>CONTROLS</h3>
+          <h2>CONTROLS</h2>
           <div className="controls-grid">
             <span className="keycap">◀</span><span className="keycap">▼</span>
             <span className="keycap">▲</span><span className="keycap">▶</span>
             <span className="controls-hint">or WASD / tap the pads or enemies</span>
           </div>
-          <h3>SETTINGS</h3>
+          <h2>SETTINGS</h2>
           <label className="slider-row">
             <span>Master</span>
             <input
@@ -176,7 +178,7 @@ export function Menu({ onSignIn }: MenuProps) {
         </section>
 
         <section className="menu__panel" aria-label="Leaderboard">
-          <h3>TOP SLAPS{selected ? ` — ${selected.title.toUpperCase()}` : ""}</h3>
+          <h2>TOP SLAPS{selected ? ` — ${selected.title.toUpperCase()}` : ""}</h2>
           {leaderboardError ? (
             <p className="menu__muted">{leaderboardError}</p>
           ) : !leaderboard || leaderboard.length === 0 ? (

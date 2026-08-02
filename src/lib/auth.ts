@@ -17,6 +17,9 @@ const secret = process.env.AUTH_SECRET || "dev-only-insecure-secret-change-me";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret,
+  // Required for Auth.js v5: trusts the Host header (reverse proxies, preview
+  // deployments, localhost). Without it /api/auth/* returns 500 UntrustedHost.
+  trustHost: true,
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 days
   pages: { signIn: "/" },
   providers: [

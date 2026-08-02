@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./banner.png" alt="Tap & Slap — synthwave beat 'em up banner" width="100%" />
+  <img src="./banner.jpg" alt="Tap & Slap — synthwave beat 'em up banner" width="100%" />
 </p>
 
 <h1 align="center">🕺 TAP &amp; SLAP</h1>
@@ -73,6 +73,11 @@ satisfying "pump" feel.
   <img src="./screenshots/gameplay.png" alt="Gameplay: enemies descending the neon lanes" width="30%" />
   <img src="./screenshots/results.png" alt="Results screen with grade" width="30%" />
 </p>
+
+## 🖼️ Repository polish
+
+- **Social preview** (the image shown when the repo is shared on X/Twitter, Slack, etc.): upload [`social-preview.jpg`](./social-preview.jpg) (1280×640) at **Settings → Social preview** — this is a one-minute manual step that makes every link share beautifully.
+- **Live demo:** add a `homepage` URL in repo settings once the app is deployed (e.g. a Vercel/Netlify URL) so the repo header links straight to the playable game.
 
 ## 🚀 Quick start
 

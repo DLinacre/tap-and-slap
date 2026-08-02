@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest an idea for Tap & Slap
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for sharing an idea! Check the roadmap in `docs/01-PRD.md` first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem / opportunity?
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How do you imagine it working? Rough UI sketches welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Gameplay feature
+        - Content (levels, tracks)
+        - UI/UX improvement
+        - Performance / quality
+        - Other
+    validations:
+      required: true
