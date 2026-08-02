@@ -165,6 +165,12 @@ button {
   font-size: 12px;
 }
 
+.boot-splash__title {
+  font-size: 20px;
+  letter-spacing: 0.24em;
+  color: var(--text);
+}
+
 .boot-splash__logo {
   font-size: 64px;
   animation: bounce 1.2s ease-in-out infinite;
@@ -966,4 +972,39 @@ button {
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
+}
+
+
+/* ------------------------------------------------------------- 404 / crash */
+
+.notfound {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+  background:
+    radial-gradient(800px 400px at 50% -10%, #2a0a4d 0%, transparent 60%),
+    var(--bg);
+}
+
+.notfound__stage {
+  font-size: 64px;
+  animation: bounce 1.2s ease-in-out infinite;
+}
+
+.notfound__title {
+  font-size: clamp(18px, 5vw, 26px);
+  letter-spacing: 0.16em;
+  color: var(--gold);
+}
+
+.notfound__body {
+  color: var(--text-dim);
+  font-size: 13px;
+  max-width: 340px;
+  line-height: 1.6;
 }

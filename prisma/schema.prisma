@@ -74,8 +74,12 @@ model ScoreRun {
   accuracy    Float // 0–100
   autoplay    Boolean  @default(false)
   durationMs  Int
+  /** Client-generated UUID — makes submission idempotent (retries/queue
+      re-flush can never double-count a run). Null for legacy rows. */
+  runId       String?
   createdAt   DateTime @default(now())
 
+  @@unique([runId])
   @@index([levelId, difficulty, score(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
   @@index([guestId, createdAt(sort: Desc)])

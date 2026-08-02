@@ -43,7 +43,7 @@ import {
   laneX,
 } from "@/game/config";
 import { baseScoreFor } from "@/game/levels/types";
-import { submitScoreResilient, maybeSaveLocalBest } from "@/lib/client/api";
+import { newRunId, submitScoreResilient, maybeSaveLocalBest } from "@/lib/client/api";
 import type { Difficulty } from "@/game/levels/types";
 
 interface ActiveNote {
@@ -625,6 +625,7 @@ export class GameScene extends Phaser.Scene {
     const durationMs = this.clock.elapsedMs();
 
     const isNewBest = !autoplay && maybeSaveLocalBest(level.slug, summary.score);
+    const runId = newRunId();
 
     const result = {
       levelSlug: level.slug,
@@ -643,6 +644,7 @@ export class GameScene extends Phaser.Scene {
       eligible: !autoplay,
       submitted: false,
       autoplay,
+      runId,
     };
 
     useGameStore.setState({ screen: "gameover", result });
@@ -666,6 +668,7 @@ export class GameScene extends Phaser.Scene {
       accuracy: Number(result.accuracy.toFixed(2)),
       durationMs: result.durationMs,
       guestId: store.guestId || undefined,
+      runId: result.runId,
       autoplay: false,
     });
 

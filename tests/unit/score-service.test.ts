@@ -39,10 +39,26 @@ class FakeRepo implements ScoreRepo {
   runs: Array<Record<string, unknown>> = [];
   better = 0;
   best: number | null = null;
+  existingByRunId: Record<string, Parameters<ScoreRepo["findRunByRunId"]> extends never ? never : any> = {};
 
   async createRun(data: Parameters<ScoreRepo["createRun"]>[0]): Promise<{ id: string }> {
     this.runs.push(data);
-    return { id: "run-1" };
+    const id = "run-" + (this.runs.length);
+    if (data.runId) {
+      this.existingByRunId[data.runId] = {
+        id,
+        userId: null,
+        guestId: data.guestId ?? null,
+        levelId: data.levelId,
+        score: data.score,
+        maxCombo: data.maxCombo,
+        accuracy: data.accuracy,
+        difficulty: data.difficulty,
+        createdAt: new Date(),
+        autoplay: data.autoplay,
+      };
+    }
+    return { id };
   }
   async countBetter(): Promise<number> {
     return this.better;
@@ -52,6 +68,9 @@ class FakeRepo implements ScoreRepo {
   }
   async leaderboard(): Promise<never[]> {
     return [];
+  }
+  async findRunByRunId(runId: string) {
+    return this.existingByRunId[runId] ?? null;
   }
 }
 
@@ -140,6 +159,21 @@ describe("recordScore", () => {
     await expect(
       recordScore(validRun({ levelSlug: "nope" }), levelDef, { guestId: "g" }, deps(repo)),
     ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("is idempotent: same runId never creates a second row", async () => {
+    const repo = new FakeRepo();
+    const run = validRun({ runId: "2f4a1c80-0000-4000-8000-0000000000aa" });
+    const first = await recordScore(run, levelDef, { guestId: "g1" }, deps(repo));
+    expect(repo.runs).toHaveLength(1);
+    // Contract: the idempotency key must reach the repo layer (catches
+    // field-by-field data mappers silently dropping it).
+    expect(repo.runs[0]).toMatchObject({ runId: run.runId });
+
+    const second = await recordScore(run, levelDef, { guestId: "g1" }, deps(repo));
+    expect(repo.runs).toHaveLength(1); // no second insert
+    expect(second.id).toBe(first.id);
+    expect(second.rank).toBe(first.rank);
   });
 
   it("reports not-new-best when previous best is higher", async () => {

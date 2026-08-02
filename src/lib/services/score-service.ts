@@ -23,6 +23,7 @@ export interface LeaderboardRow {
   id: string;
   userId: string | null;
   guestId: string | null;
+  levelId: string;
   score: number;
   maxCombo: number;
   accuracy: number;
@@ -45,6 +46,7 @@ export interface ScoreRepo {
     accuracy: number;
     autoplay: boolean;
     durationMs: number;
+    runId?: string | null;
   }): Promise<{ id: string }>;
 
   countBetter(levelId: string, difficulty: string, score: number): Promise<number>;
@@ -59,6 +61,9 @@ export interface ScoreRepo {
     difficulty?: string;
     limit: number;
   }): Promise<LeaderboardRow[]>;
+
+  /** Look up an existing run by its client-generated idempotency key. */
+  findRunByRunId(runId: string): Promise<LeaderboardRow & { autoplay: boolean } | null>;
 }
 
 export const prismaScoreRepo: ScoreRepo = {
@@ -78,6 +83,7 @@ export const prismaScoreRepo: ScoreRepo = {
         accuracy: data.accuracy,
         autoplay: data.autoplay,
         durationMs: data.durationMs,
+        runId: data.runId ?? null,
       },
       select: { id: true },
     });
@@ -113,11 +119,30 @@ export const prismaScoreRepo: ScoreRepo = {
         id: true,
         userId: true,
         guestId: true,
+        levelId: true,
         score: true,
         maxCombo: true,
         accuracy: true,
         difficulty: true,
         createdAt: true,
+      },
+    });
+  },
+
+  async findRunByRunId(runId) {
+    return prisma.scoreRun.findUnique({
+      where: { runId },
+      select: {
+        id: true,
+        userId: true,
+        guestId: true,
+        score: true,
+        maxCombo: true,
+        accuracy: true,
+        difficulty: true,
+        createdAt: true,
+        autoplay: true,
+        levelId: true,
       },
     });
   },
@@ -204,6 +229,24 @@ export async function recordScore(
   const levelId = await deps.findLevelId(input.levelSlug);
   if (!levelId) throw ApiError.notFound(`Level '${input.levelSlug}' not found`);
 
+  // Idempotency: a retried submission (same client runId) must never create a
+  // second row or shift ranks. Return the stored result verbatim instead.
+  if (input.runId) {
+    const existing = await deps.repo.findRunByRunId(input.runId);
+    if (existing) {
+      const [rank] = await Promise.all([
+        deps.repo.countBetter(existing.levelId, existing.difficulty, existing.score),
+      ]);
+      logger.info("score.duplicate_rejected", { runId: input.runId });
+      return {
+        id: existing.id,
+        rank: existing.autoplay ? null : rank + 1,
+        isNewBest: false,
+        eligible: !existing.autoplay,
+      };
+    }
+  }
+
   const { id } = await deps.repo.createRun({
     userId: ctx.userId,
     guestId: ctx.guestId,
@@ -218,6 +261,7 @@ export async function recordScore(
     accuracy: input.accuracy,
     autoplay: input.autoplay,
     durationMs: input.durationMs,
+    runId: input.runId ?? null,
   });
 
   const [rank, prevBest] = await Promise.all([

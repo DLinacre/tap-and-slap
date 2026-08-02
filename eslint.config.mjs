@@ -16,6 +16,7 @@ const eslintConfig = [
       "coverage/**",
       "playwright-report/**",
       "test-results/**",
+      "scripts/**",
       "prisma/dev.db",
     ],
   },

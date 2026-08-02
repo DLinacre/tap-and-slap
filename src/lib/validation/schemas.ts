@@ -45,6 +45,8 @@ export const scoreSubmitSchema = z.object({
   accuracy: z.number().min(0).max(100),
   durationMs: z.number().int().min(1_000).max(600_000),
   guestId: z.string().uuid().optional(),
+  /** Client-generated run id — idempotency key (retries never double-count). */
+  runId: z.string().uuid().optional(),
   autoplay: z.boolean().default(false),
 });
 

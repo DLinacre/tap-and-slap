@@ -34,6 +34,8 @@ export interface SubmitScorePayload {
   accuracy: number;
   durationMs: number;
   guestId?: string;
+  /** Client-generated idempotency key — retries never double-count. */
+  runId?: string;
   autoplay?: boolean;
 }
 

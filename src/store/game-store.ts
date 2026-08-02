@@ -57,6 +57,8 @@ export interface GameResult {
   eligible: boolean;
   submitted: boolean;
   autoplay: boolean;
+  /** Client-generated idempotency key for score submission. */
+  runId: string;
 }
 
 export interface RunOptions {

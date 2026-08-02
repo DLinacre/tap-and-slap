@@ -145,6 +145,15 @@ function enqueueScore(payload: SubmitScorePayload): void {
   }
 }
 
+/** Generate a fresh idempotency key for a completed run. */
+export function newRunId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 /** Flush queued scores (call on app load when `navigator.onLine`). */
 export async function flushPendingScores(): Promise<number> {
   if (typeof window === "undefined") return 0;
