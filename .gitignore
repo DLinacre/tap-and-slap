@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Production
+build/
+dist/
+
+# Database
+prisma/dev.db
+prisma/dev.db-journal
+
+# Env & secrets
+.env
+.env*.local
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+
+# Misc
+*.log
+.DS_Store
+*.tsbuildinfo

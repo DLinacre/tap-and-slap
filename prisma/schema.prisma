@@ -1,0 +1,83 @@
+// =============================================================================
+// Tap & Slap — Prisma schema (MVP)
+//
+// Dev target: SQLite (zero-config). Production target: PostgreSQL — the schema
+// below is intentionally portable; swap `provider` and re-run `prisma migrate`.
+// (See docs/03-database.md for the ERD and migration strategy.)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Users — optional accounts. Guests can play and post scores without an
+// account (identified by a client-generated UUID stored in localStorage).
+// ---------------------------------------------------------------------------
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  username     String     @unique
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  runs         ScoreRun[]
+}
+
+// ---------------------------------------------------------------------------
+// Levels — content pipeline placeholder. The MVP ships levels from the code
+// registry (`src/game/levels/registry.ts`); rows are seeded to mirror them so
+// score runs can reference real rows and the future in-game level editor has
+// a home. `mapJson` mirrors the serialized BeatMap.
+// ---------------------------------------------------------------------------
+model Level {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  title         String
+  artist        String
+  description   String
+  bpm           Int
+  difficulty    String // Difficulty enum as string: EASY | NORMAL | HARD | INSANE
+  noteCount     Int
+  durationSec   Int
+  mapJson       Json
+  isPublished   Boolean    @default(true)
+  createdById   String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  runs          ScoreRun[]
+}
+
+// ---------------------------------------------------------------------------
+// ScoreRun — one completed play session. Guests are identified by `guestId`;
+// autoplay/QA runs are flagged and excluded from leaderboards.
+// ---------------------------------------------------------------------------
+model ScoreRun {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestId     String?
+  levelId     String
+  level       Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  difficulty  String // EASY | NORMAL | HARD | INSANE
+  score       Int
+  maxCombo    Int
+  perfects    Int
+  greats      Int
+  goods       Int
+  misses      Int
+  accuracy    Float // 0–100
+  autoplay    Boolean  @default(false)
+  durationMs  Int
+  createdAt   DateTime @default(now())
+
+  @@index([levelId, difficulty, score(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([guestId, createdAt(sort: Desc)])
+  @@index([autoplay])
+}
