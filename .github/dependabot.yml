@@ -12,6 +12,13 @@ updates:
         dependency-type: "production"
       development:
         dependency-type: "development"
+    ignore:
+      # Prisma is pinned to the stable 6.18 line: newer 6.19.x tarballs fail
+      # 'prisma generate' on fresh installs (missing SQLite WASM engine —
+      # "Cannot find module query_engine_bg.sqlite.wasm-base64.js"). Un-ignore
+      # once upstream ships a fixed release.
+      - dependency-name: "prisma"
+      - dependency-name: "@prisma/client"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
