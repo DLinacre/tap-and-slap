@@ -109,6 +109,11 @@ button {
   text-align: center;
 }
 
+.app-footer a {
+  color: var(--cyan);
+  text-decoration: underline;
+}
+
 .stage {
   position: relative;
   flex: 1;
@@ -301,6 +306,18 @@ button {
   font-size: 11px;
   letter-spacing: 0.08em;
   display: block;
+}
+
+.level-card__daily {
+  margin-left: 8px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 2px 8px;
+  vertical-align: 2px;
+  animation: badge-glow 1.6s ease-in-out infinite;
 }
 
 .level-card__right {
@@ -1007,4 +1024,59 @@ button {
   font-size: 13px;
   max-width: 340px;
   line-height: 1.6;
+}
+
+/* --------------------------------------------------------------- info pages */
+
+.info-page {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100dvh;
+}
+
+.info-page h1 {
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  background: linear-gradient(180deg, #fff, var(--pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.info-page h2 {
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--cyan);
+  margin-top: 10px;
+}
+
+.info-page p,
+.info-page li {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+
+.info-page ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-page a {
+  color: var(--pink);
+}
+
+.info-page__updated {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.info-page__back {
+  margin-top: 20px;
 }

@@ -7,12 +7,14 @@
 import { gameBridge } from "@/game/bridge";
 import { audioEngine } from "@/game/audio/AudioEngine";
 import { useGameStore, RunOptions } from "@/store/game-store";
+import { track } from "./analytics";
 
 export function startRun(slug: string, options: RunOptions = {}): void {
   audioEngine.ensureStarted(); // user gesture unlocks audio
   audioEngine.ui();
   useGameStore.setState({ screen: "playing" });
   gameBridge.start(slug, options);
+  track("play_started", { level: slug });
 }
 
 export function pauseGame(): void {

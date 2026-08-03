@@ -80,10 +80,15 @@ describe("mulberry32", () => {
 });
 
 describe("built-in registry", () => {
-  it("exposes three playable levels", () => {
+  it("exposes the daily challenge plus three built-in levels", () => {
     const metas = getLevelMetas();
-    expect(metas).toHaveLength(3);
-    expect(metas.map((m) => m.slug)).toEqual(["first-beat", "neon-rampage", "disco-inferno"]);
+    expect(metas).toHaveLength(4);
+    expect(metas[0]!.slug).toMatch(/^daily-\d{4}-\d{2}-\d{2}$/);
+    expect(metas.slice(1).map((m) => m.slug)).toEqual([
+      "first-beat",
+      "neon-rampage",
+      "disco-inferno",
+    ]);
     for (const meta of metas) {
       expect(meta.noteCount).toBeGreaterThan(20);
       expect(meta.durationSec).toBeGreaterThan(30);

@@ -12,6 +12,7 @@ import { NeonButton } from "@/components/ui/NeonButton";
 import { gameBridge } from "@/game/bridge";
 import { audioEngine } from "@/game/audio/AudioEngine";
 import { getLevels } from "@/game/levels/registry";
+import { getDailyDef } from "@/game/levels/daily";
 import { useGameStore } from "@/store/game-store";
 import { useSettingsStore } from "@/store/settings-store";
 import { fetchLeaderboard, fetchMe, flushPendingScores, getGuestId } from "@/lib/client/api";
@@ -42,13 +43,13 @@ export function GameShell() {
   // --- Boot: identity, levels, leaderboard, offline queue, URL flags --------
   useEffect(() => {
     setGuestId(getGuestId());
-    setLevels(getLevels());
+    setLevels([getDailyDef(), ...getLevels()]);
 
     const params = new URLSearchParams(window.location.search);
     const autoplay = params.get("autoplay") === "1";
     const qa = params.get("qa") === "1";
     if (autoplay) {
-      const first = getLevels()[0];
+      const first = [getDailyDef(), ...getLevels()][0];
       if (first) autoStart.current = { slug: first.slug, options: { autoplay: true, qa } };
     }
 
@@ -158,7 +159,12 @@ export function GameShell() {
 
       <footer className="app-footer">
         {screen === "playing" && <span>ESC pause · arrows/WASD to slap</span>}
-        {screen !== "playing" && <span>Tap the beat. Slap the enemy. Stay alive.</span>}
+        {screen !== "playing" && (
+          <span>
+            Tap the beat. Slap the enemy. Stay alive. ·{" "}
+            <a href="/about">About</a> · <a href="/privacy">Privacy</a>
+          </span>
+        )}
       </footer>
 
       {showLogin && (

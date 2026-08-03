@@ -15,8 +15,9 @@ test.describe("Tap & Slap smoke", () => {
     // Cold dev servers compile the game chunks on first request — allow plenty
     // of time for the Phaser boot to complete and the menu to mount.
     await expect(page.getByTestId("menu")).toBeVisible({ timeout: 60_000 });
-    // 3 level cards (the leaderboard is a separate list, don't match it).
-    await expect(page.getByRole("list", { name: "Levels" }).getByRole("listitem")).toHaveCount(3);
+    // Daily challenge + 3 built-in level cards (the leaderboard is a separate list).
+    await expect(page.getByRole("list", { name: "Levels" }).getByRole("listitem")).toHaveCount(4);
+    await expect(page.locator(".level-card__daily")).toBeVisible();
   });
 
   test("QA autoplay run plays and reaches the results screen", async ({ page }) => {

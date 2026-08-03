@@ -42,3 +42,25 @@ function installCanvas2dStub(): void {
 }
 
 installCanvas2dStub();
+
+/**
+ * Defensive localStorage polyfill — some JSDOM/Node versions don't provide
+ * one; game code (guest id, settings, offline queue) requires it.
+ */
+if (typeof globalThis.localStorage === "undefined") {
+  const store = new Map<string, string>();
+  const localStorageShim = {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, String(v)),
+    removeItem: (k: string) => void store.delete(k),
+    clear: () => store.clear(),
+    key: (i: number) => [...store.keys()][i] ?? null,
+    get length() {
+      return store.size;
+    },
+  };
+  Object.defineProperty(globalThis, "localStorage", {
+    value: localStorageShim,
+    configurable: true,
+  });
+}

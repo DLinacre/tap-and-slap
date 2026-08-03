@@ -202,10 +202,10 @@ function guestLabel(guestId: string): string {
   return `Guest-${guestId.slice(0, 8)}`;
 }
 
-/** Default level-row resolver (Prisma). */
+/** Default level-row resolver (Prisma + lazy daily materialisation). */
+import { resolveLevelId } from "./level-service";
 async function prismaFindLevelId(slug: string): Promise<string | null> {
-  const level = await prisma.level.findUnique({ where: { slug }, select: { id: true } });
-  return level?.id ?? null;
+  return resolveLevelId(slug);
 }
 
 export interface ScoreServiceDeps {

@@ -44,6 +44,7 @@ import {
 } from "@/game/config";
 import { baseScoreFor } from "@/game/levels/types";
 import { newRunId, submitScoreResilient, maybeSaveLocalBest } from "@/lib/client/api";
+import { track } from "@/lib/client/analytics";
 import type { Difficulty } from "@/game/levels/types";
 
 interface ActiveNote {
@@ -648,6 +649,7 @@ export class GameScene extends Phaser.Scene {
     };
 
     useGameStore.setState({ screen: "gameover", result });
+    track("level_completed", { level: level.slug, accuracy: Math.round(summary.accuracy) });
 
     if (!autoplay && summary.misses < level.map.notes.length) {
       void this.submitResult(result);
@@ -676,6 +678,7 @@ export class GameScene extends Phaser.Scene {
       useGameStore.setState({
         result: { ...useGameStore.getState().result!, rank: response.rank, submitted: true },
       });
+      track("score_submitted", { rank: response.rank ?? 0, isNewBest: response.isNewBest });
     }
   }
 

@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { leaderboardQuerySchema, parseJsonBody, scoreSubmitSchema } from "@/lib/validation/schemas";
 import { getLevelDef, getLevelMeta } from "@/game/levels/registry";
+import { resolveLevelId } from "@/lib/services/level-service";
 import { recordScore, fetchLeaderboardRows, toLeaderboardEntries } from "@/lib/services/score-service";
 import { prisma } from "@/lib/db";
 import { LeaderboardEntry, SubmitScoreResponse } from "@/types/api";
@@ -27,7 +28,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     if (parsed.data.level && !meta) throw ApiError.notFound(`Level '${parsed.data.level}' not found`);
 
     const rows = await fetchLeaderboardRows({
-      levelId: meta ? (await prisma.level.findUnique({ where: { slug: meta.slug } }))?.id : undefined,
+      levelId: meta ? (await resolveLevelId(meta.slug)) ?? undefined : undefined,
       difficulty: parsed.data.difficulty,
       limit: parsed.data.limit,
     });

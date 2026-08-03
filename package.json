@@ -5,7 +5,7 @@
   "description": "Tap & Slap \u2014 a dance-mat beat 'em up. Tap to kill enemies ON the beat. Built with Next.js 15 + Phaser 3 + TypeScript.",
   "license": "MIT",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "next dev",

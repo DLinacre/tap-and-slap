@@ -10,6 +10,17 @@
 </p>
 
 <p align="center">
+  <a href="https://tap-and-slap.vercel.app"><b>▶ PLAY NOW</b></a>
+  &nbsp;·&nbsp; free, no sign-up · <a href="https://tap-and-slap.vercel.app">tap-and-slap.vercel.app</a>
+</p>
+
+<p align="center">
+  <img src="./screenshots/gameplay.gif"
+       alt="Tap & Slap gameplay: enemies descend four neon lanes and explode as the player hits them on the beat"
+       width="42%" />
+</p>
+
+<p align="center">
   <a href="https://github.com/DLinacre/tap-and-slap/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff2ec4.svg" alt="MIT license"/></a>
   <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15-black.svg?logo=nextdotjs&logoColor=white" alt="Next.js 15"/></a>
   <a href="https://phaser.io"><img src="https://img.shields.io/badge/Phaser-3.90-22d3ee.svg" alt="Phaser 3.90"/></a>
@@ -61,7 +72,7 @@ satisfying "pump" feel.
 - **Combo depth** — ×8 multiplier ladder, health economy, heavy enemies (×1.5 pts), minis (×0.5)
 - **Perfect-hit juice** — sparkle chimes, expanding shockwaves, "ON FIRE!" streak calls, ascending combo-milestone arpeggios
 - **Grades** — SSS → D on every run, FLAWLESS for zero misses
-- **3 shipped levels** — *First Beat* (EASY) · *Neon Rampage* (NORMAL) · *Disco Inferno* (HARD)
+- **3 shipped levels + a Daily Challenge** — *First Beat* (EASY) · *Neon Rampage* (NORMAL) · *Disco Inferno* (HARD), plus a fresh deterministic map every day with its own leaderboard
 - **Synthwave visuals** — sliced sun, twinkling stars, scrolling grid, CRT scanlines, vignette, AI-generated menu art
 - **Leaderboards** — guest play with zero sign-up, optional accounts (bcrypt + JWT), server-side anti-cheat integrity checks, offline score queue
 - **Accessibility** — keyboard-only playable, timing calibration, per-channel volume (Master / Music / SFX)
@@ -138,6 +149,45 @@ screenshots/        in-game captures
 | [docs/05-security-quality.md](docs/05-security-quality.md) | Threat model, validation, auth, secrets, testing strategy |
 | [docs/06-execution-plan.md](docs/06-execution-plan.md) | Phases, deployment runbook, risks |
 
+
+## ❓ FAQ
+
+**How does scoring work?**
+Every enemy is worth base points (100 normal · 150 heavy · 50 mini) multiplied
+by your combo multiplier (up to ×8) and a timing weight — PERFECT ×1.0,
+GREAT ×0.7, GOOD ×0.4. Misses reset your combo and cost health.
+
+**Is the music licensed?**
+No. Every track is an original composition generated in your browser from the
+level's beat map — including the stomp-stomp-clap crowd anthem and the
+heavy-riff war march. The one exception is *Ode to Joy* (Beethoven, 1824),
+which is in the public domain. Everything is safe to use commercially.
+
+**What is the Daily Challenge?**
+A fresh map every day (resets at midnight UTC) that is identical for every
+player, with its own leaderboard. The map is derived deterministically from
+the date — no server job needed.
+
+**Why does timing feel off?**
+Open Settings → Offset and adjust calibration by ±100 ms to match your
+display's latency.
+
+**Do I need an account?**
+No — you can play and post scores as a guest. Accounts (optional) just put
+your name on the leaderboard.
+
+**Where do I report a bug or a security issue?**
+Bugs → issues (use the bug template). Security → [SECURITY.md](./SECURITY.md)
+(private report only).
+
+## ♿ Accessibility
+
+- Keyboard-only playable (arrows/WASD, `ESC`/`P` to pause); visible focus rings
+- `prefers-reduced-motion` support; pinch-zoom enabled (WCAG 2.2)
+- Judgment feedback is colour + text (never colour-only); alt text on all media
+- axe-core scan: 0 violations; [accessibility notes](https://github.com/DLinacre/tap-and-slap/blob/main/src/app/globals.css)
+- Privacy: see [Privacy page](https://tap-and-slap.vercel.app/privacy) — no
+  trackers, no analytics by default
 ## 🛣️ Roadmap
 
 Insane difficulty + daily seeded challenge → level editor → replay-based

@@ -9,6 +9,7 @@
 
 import { BeatMap, LevelDef, LevelMeta, metaFromDef } from "./types";
 import { generateMap, GeneratorOptions } from "./generator";
+import { buildDailyDef, dailyDateFromSlug, isDailySlug } from "./daily";
 
 export interface BuildLevelOptions {
   /** QA mode: truncate the map to the first N bars. */
@@ -75,9 +76,15 @@ const LEVELS: LevelDef[] = [
   ),
 ];
 
-/** Clone a level def, optionally truncating the map (QA mode). */
+/**
+ * Resolve a level def: built-ins first, then dynamic daily-challenge slugs.
+ * Daily maps are derived deterministically from the slug's date, so the
+ * server and every client agree on the exact same map (integrity-safe).
+ */
 export function getLevelDef(slug: string, opts?: BuildLevelOptions): LevelDef | undefined {
-  const def = LEVELS.find((l) => l.slug === slug);
+  const def =
+    LEVELS.find((l) => l.slug === slug) ??
+    (isDailySlug(slug) ? defFromDailySlug(slug) : undefined);
   if (!def) return undefined;
   if (!opts?.truncateBars) return def;
   return {
@@ -89,6 +96,14 @@ export function getLevelDef(slug: string, opts?: BuildLevelOptions): LevelDef | 
       truncateBars: opts.truncateBars,
     }),
   };
+}
+
+function defFromDailySlug(slug: string): LevelDef | undefined {
+  const date = dailyDateFromSlug(slug);
+  if (!date) return undefined;
+  // Future challenges don't exist yet.
+  if (date.getTime() > new Date().getTime()) return undefined;
+  return buildDailyDef(date);
 }
 
 function densityForDifficulty(d: LevelDef["difficulty"]): 1 | 2 | 3 | 4 {
@@ -109,7 +124,8 @@ export function getLevels(): LevelDef[] {
 }
 
 export function getLevelMetas(): LevelMeta[] {
-  return LEVELS.map(metaFromDef);
+  // The daily challenge leads the listing (server-side /api/levels).
+  return [metaFromDef(buildDailyDef(new Date())), ...LEVELS.map(metaFromDef)];
 }
 
 export function getLevelMeta(slug: string): LevelMeta | undefined {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { useGameStore } from "@/store/game-store";
 import { useSettingsStore } from "@/store/settings-store";
@@ -8,6 +8,7 @@ import { startRun, uiClick } from "@/lib/client/game-actions";
 import { audioEngine } from "@/game/audio/AudioEngine";
 import { TRACK_LIST, TrackId } from "@/game/audio/tracks";
 import { baseScoreFor, expectedMaxScore, LevelDef, LevelMeta, metaFromDef } from "@/game/levels/types";
+import { isDailySlug } from "@/game/levels/daily";
 
 interface MenuProps {
   onSignIn: () => void;
@@ -38,7 +39,21 @@ export function Menu({ onSignIn }: MenuProps) {
   const calibrationMs = useSettingsStore((s) => s.calibrationMs);
 
   const [selectedSlug, setSelectedSlug] = useState<string | null>(levels[0]?.slug ?? null);
+  const [now, setNow] = useState(() => Date.now());
   const selected = levels.find((l) => l.slug === selectedSlug) ?? levels[0] ?? null;
+
+  // Countdown to midnight UTC for the daily challenge card.
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  const toMidnightUtc = (): string => {
+    const d = new Date(now);
+    const mid = new Date(d);
+    mid.setUTCHours(24, 0, 0, 0);
+    const ms = Math.max(0, mid.getTime() - d.getTime());
+    return `${Math.floor(ms / 3_600_000)}h ${Math.floor((ms % 3_600_000) / 60_000)}m`;
+  };
 
   const activeTrack = useSettingsStore((s) => s.trackForLevel(selected?.slug ?? "", selected?.defaultTrack));
   const setTrackForLevel = useSettingsStore((s) => s.setTrackForLevel);
@@ -68,6 +83,7 @@ export function Menu({ onSignIn }: MenuProps) {
             const meta: LevelMeta = metaFromDef(level);
             const maxScore = expectedMaxScore(level);
             const isSelected = selected?.slug === level.slug;
+            const isDaily = isDailySlug(level.slug);
             return (
               <li key={level.slug}>
                 <button
@@ -78,9 +94,13 @@ export function Menu({ onSignIn }: MenuProps) {
                   }}
                 >
                   <span className="level-card__left">
-                    <span className="level-card__title">{level.title}</span>
+                    <span className="level-card__title">
+                      {level.title}
+                      {isDaily && <span className="level-card__daily">DAILY</span>}
+                    </span>
                     <span className="level-card__meta">
                       {DIFFICULTY_LABEL[level.difficulty]} · {level.bpm} BPM · {meta.noteCount} notes
+                      {isDaily && <> · resets in {toMidnightUtc()}</>}
                     </span>
                   </span>
                   <span className="level-card__right">

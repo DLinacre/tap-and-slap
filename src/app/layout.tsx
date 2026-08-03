@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Orbitron } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
@@ -12,13 +13,14 @@ const orbitron = Orbitron({
   display: "swap",
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
 const DESCRIPTION =
   "Tap & Slap is a dance-mat beat 'em up: tap to kill enemies exactly on the beat. Four neon lanes, combo multipliers, procedural synthwave fight music — keyboard or touch, free to play in your browser.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
+  // Defaults to the deployed origin; NEXT_PUBLIC_APP_URL overrides in dev/staging.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://tap-and-slap.vercel.app",
+  ),
   title: {
     default: "Tap & Slap — Dance-Mat Beat 'em Up",
     template: "%s | Tap & Slap",
@@ -40,7 +42,6 @@ export const metadata: Metadata = {
   category: "game",
   openGraph: {
     type: "website",
-    url: APP_URL,
     siteName: "Tap & Slap",
     title: "Tap & Slap — Dance-Mat Beat 'em Up",
     description: DESCRIPTION,
@@ -88,13 +89,18 @@ const VIDEOGAME_SCHEMA = {
   keywords: "rhythm game, beat em up, tap game, dance mat, browser game",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Nonce set by middleware (production) for the inline schema script.
+  const h = await headers();
+  const nonce = h.get("x-nonce") ?? "";
+
   return (
     <html lang="en">
       <body className={orbitron.variable}>
         <Providers>{children}</Providers>
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(VIDEOGAME_SCHEMA) }}
         />
       </body>
