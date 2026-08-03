@@ -17,36 +17,25 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
   const result = useGameStore((s) => s.result);
   const player = useGameStore((s) => s.player);
 
-  if (!result) return null;
-
-  const verdict =
-    result.misses === 0
-      ? "FLAWLESS!"
-      : result.accuracy >= 90
-        ? "ON FIRE!"
-        : result.accuracy >= 70
-          ? "SOLID RUN"
-          : "KEEP PRACTICING";
-
-  // Judgment breakdown percentages for the proportional bar.
-  const total = result.perfects + result.greats + result.goods + result.misses || 1;
-  const barPct = (n: number) => `${((n / total) * 100).toFixed(1)}%`;
-
-  /** DDR-style grade from weighted accuracy. */
+  // NOTE: all hooks must run before the early return (Rules of Hooks).
   const grade =
-    result.accuracy >= 99
+    result && result.accuracy >= 99
       ? { letter: "SSS", cls: "grade--gold" }
-      : result.accuracy >= 96
+      : result && result.accuracy >= 96
         ? { letter: "SS", cls: "grade--gold" }
-        : result.accuracy >= 92
+        : result && result.accuracy >= 92
           ? { letter: "S", cls: "grade--gold" }
-          : result.accuracy >= 85
+          : result && result.accuracy >= 85
             ? { letter: "A", cls: "grade--cyan" }
-            : result.accuracy >= 75
+            : result && result.accuracy >= 75
               ? { letter: "B", cls: "grade--cyan" }
-              : result.accuracy >= 60
+              : result && result.accuracy >= 60
                 ? { letter: "C", cls: "grade--pink" }
                 : { letter: "D", cls: "grade--dim" };
+
+  // Judgment breakdown percentages for the proportional bar.
+  const total = (result?.perfects ?? 0) + (result?.greats ?? 0) + (result?.goods ?? 0) + (result?.misses ?? 0) || 1;
+  const barPct = (n: number) => `${((n / total) * 100).toFixed(1)}%`;
 
   // Confetti for top-tier runs (respects prefers-reduced-motion via CSS).
   const showConfetti = grade.letter === "SSS" || grade.letter === "SS" || grade.letter === "S";
@@ -63,6 +52,17 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
         : [],
     [showConfetti],
   );
+
+  if (!result) return null;
+
+  const verdict =
+    result.misses === 0
+      ? "FLAWLESS!"
+      : result.accuracy >= 90
+        ? "ON FIRE!"
+        : result.accuracy >= 70
+          ? "SOLID RUN"
+          : "KEEP PRACTICING";
 
   const stat = (label: string, value: string, testId?: string) => (
     <div className="results__stat" data-testid={testId}>
