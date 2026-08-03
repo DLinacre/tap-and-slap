@@ -224,6 +224,21 @@ button {
   --btn-color: var(--red);
 }
 
+.neon-btn--play {
+  --btn-color: var(--pink);
+  background: linear-gradient(135deg, #ff2ec4, #8b1fd8);
+  color: #fff;
+  font-size: 17px;
+  padding: 16px 36px;
+  letter-spacing: 0.18em;
+  box-shadow: 0 0 30px rgba(255, 46, 196, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.neon-btn--play:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff4dcf, #9c3ae6);
+  box-shadow: 0 0 44px rgba(255, 46, 196, 0.75), 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
 /* ------------------------------------------------------------------- menu */
 
 .menu {
@@ -266,6 +281,27 @@ button {
   letter-spacing: 0.08em;
 }
 
+.menu__steps {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.menu__steps span {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.menu__steps b {
+  color: var(--pink);
+}
+
 .menu__levels {
   display: flex;
   flex-direction: column;
@@ -297,7 +333,15 @@ button {
 .level-card__title {
   font-weight: 700;
   font-size: 14px;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.level-card__name {
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .level-card__meta,
@@ -306,6 +350,16 @@ button {
   font-size: 11px;
   letter-spacing: 0.08em;
   display: block;
+}
+
+.level-card--daily {
+  border-color: rgba(255, 213, 74, 0.55);
+  background: linear-gradient(135deg, rgba(255, 213, 74, 0.12), rgba(255, 46, 196, 0.06));
+  box-shadow: 0 0 22px rgba(255, 213, 74, 0.2);
+}
+
+.level-card--daily .level-card__title {
+  color: var(--gold);
 }
 
 .level-card__daily {
@@ -375,6 +429,42 @@ button {
   backdrop-filter: blur(8px);
 }
 
+/* -------------------------------------------------------- difficulty pills */
+
+.diff-pill {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.diff--EASY {
+  color: #a3e635;
+  border-color: #a3e635;
+  background: rgba(163, 230, 53, 0.1);
+}
+
+.diff--NORMAL {
+  color: #22d3ee;
+  border-color: #22d3ee;
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.diff--HARD {
+  color: #ff4d6d;
+  border-color: #ff4d6d;
+  background: rgba(255, 77, 109, 0.1);
+}
+
+.diff--INSANE {
+  color: #ff8a3d;
+  border-color: #ff8a3d;
+  background: rgba(255, 138, 61, 0.1);
+}
+
 /* ------------------------------------------------------------- track list */
 
 .track-list {
@@ -417,6 +507,28 @@ button {
 .track-item--active .track-item__play {
   color: var(--pink);
   animation: track-pulse 1s ease-in-out infinite;
+}
+
+.eq {
+  display: inline-flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 14px;
+}
+
+.eq i {
+  width: 3px;
+  background: currentColor;
+  border-radius: 2px;
+  animation: eq-bounce 0.9s ease-in-out infinite;
+}
+
+.eq i:nth-child(2) { animation-delay: 0.15s; }
+.eq i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes eq-bounce {
+  0%, 100% { height: 4px; }
+  50% { height: 14px; }
 }
 
 .track-item__body {
@@ -605,6 +717,19 @@ button {
   justify-content: space-between;
   padding: 12px 14px 0;
   gap: 10px;
+}
+
+.hud__score-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.hud__score-label {
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  color: var(--text-dim);
 }
 
 .hud__score {
@@ -859,6 +984,40 @@ button {
 .results__submitted {
   font-size: 11px;
   color: var(--text-dim);
+}
+
+.judgment-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.judgment-bar span {
+  display: block;
+  height: 100%;
+}
+
+.judgment-bar__perfect { background: var(--gold); }
+.judgment-bar__great { background: var(--cyan); }
+.judgment-bar__good { background: var(--lime); }
+.judgment-bar__miss { background: var(--red); }
+
+.confetti {
+  position: absolute;
+  top: -14px;
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  animation: confetti-fall linear infinite;
+  pointer-events: none;
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(460px) rotate(720deg);
+  }
 }
 
 /* ------------------------------------------------------------------ modal */

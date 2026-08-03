@@ -27,8 +27,11 @@ export function Hud() {
         <div className="hud__accuracy" data-testid="hud-accuracy">
           {hud.accuracy.toFixed(1)}%
         </div>
-        <div className="hud__score" data-testid="hud-score">
-          {hud.score.toLocaleString("en-US")}
+        <div className="hud__score-wrap">
+          <span className="hud__score-label">SCORE</span>
+          <div className="hud__score" data-testid="hud-score">
+            {hud.score.toLocaleString("en-US")}
+          </div>
         </div>
         <button
           className="hud__pause"

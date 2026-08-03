@@ -76,6 +76,11 @@ export function Menu({ onSignIn }: MenuProps) {
       <p className="menu__tagline">
         Dance-mat beat <em>’em up</em> — tap to kill on the beat.
       </p>
+      <div className="menu__steps" aria-hidden="true">
+        <span>1 · <b>PICK</b> a level</span>
+        <span>2 · <b>SLAP</b> on the beat</span>
+        <span>3 · <b>TOP</b> the board</span>
+      </div>
 
       <div className="menu__levels-wrap">
         <ul className="menu__levels" aria-label="Levels">
@@ -87,7 +92,7 @@ export function Menu({ onSignIn }: MenuProps) {
             return (
               <li key={level.slug}>
                 <button
-                  className={`level-card ${isSelected ? "level-card--selected" : ""}`}
+                  className={`level-card ${isSelected ? "level-card--selected" : ""} ${isDaily ? "level-card--daily" : ""}`}
                   onClick={() => {
                     uiClick();
                     setSelectedSlug(level.slug);
@@ -95,16 +100,22 @@ export function Menu({ onSignIn }: MenuProps) {
                 >
                   <span className="level-card__left">
                     <span className="level-card__title">
-                      {level.title}
+                      <span className={`diff-pill diff--${level.difficulty}`}>
+                        {DIFFICULTY_LABEL[level.difficulty]}
+                      </span>
+                      <span className="level-card__name">{level.title}</span>
                       {isDaily && <span className="level-card__daily">DAILY</span>}
                     </span>
                     <span className="level-card__meta">
-                      {DIFFICULTY_LABEL[level.difficulty]} · {level.bpm} BPM · {meta.noteCount} notes
+                      {level.bpm} BPM · {meta.noteCount} notes
                       {isDaily && <> · resets in {toMidnightUtc()}</>}
                     </span>
                   </span>
                   <span className="level-card__right">
-                    <span className="level-card__duration">{meta.durationSec}s</span>
+                    <span className="level-card__duration">
+                      {isSelected ? "▶ " : ""}
+                      {meta.durationSec}s
+                    </span>
                     <span className="level-card__max">{maxScore.toLocaleString("en-US")} max</span>
                   </span>
                 </button>
@@ -118,7 +129,7 @@ export function Menu({ onSignIn }: MenuProps) {
         <div className="menu__start-row">
           <p className="menu__desc">{selected.description}</p>
           <NeonButton
-            className="menu__start"
+            className="menu__start neon-btn--play"
             onClick={() => start(selected)}
             data-testid="start-level"
           >
@@ -140,7 +151,17 @@ export function Menu({ onSignIn }: MenuProps) {
                 aria-pressed={isActive}
                 data-testid={`track-${track.id}`}
               >
-                <span className="track-item__play">{isActive ? "♪" : "▶"}</span>
+                <span className="track-item__play">
+                  {isActive ? (
+                    <span className="eq" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                  ) : (
+                    "▶"
+                  )}
+                </span>
                 <span className="track-item__body">
                   <span className="track-item__name">{track.name}</span>
                   <span className="track-item__tagline">{track.tagline}</span>

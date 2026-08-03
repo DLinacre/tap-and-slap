@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { useGameStore } from "@/store/game-store";
 import { quitToMenu, restartRun } from "@/lib/client/game-actions";
@@ -27,6 +28,10 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
           ? "SOLID RUN"
           : "KEEP PRACTICING";
 
+  // Judgment breakdown percentages for the proportional bar.
+  const total = result.perfects + result.greats + result.goods + result.misses || 1;
+  const barPct = (n: number) => `${((n / total) * 100).toFixed(1)}%`;
+
   /** DDR-style grade from weighted accuracy. */
   const grade =
     result.accuracy >= 99
@@ -42,6 +47,22 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
               : result.accuracy >= 60
                 ? { letter: "C", cls: "grade--pink" }
                 : { letter: "D", cls: "grade--dim" };
+
+  // Confetti for top-tier runs (respects prefers-reduced-motion via CSS).
+  const showConfetti = grade.letter === "SSS" || grade.letter === "SS" || grade.letter === "S";
+  const confetti = useMemo(
+    () =>
+      showConfetti
+        ? Array.from({ length: 14 }, (_, i) => ({
+            id: i,
+            left: `${(i * 7.3 + 3) % 100}%`,
+            delay: `${(i % 7) * 0.28}s`,
+            duration: `${2.4 + (i % 5) * 0.35}s`,
+            color: ["#ff2ec4", "#22d3ee", "#ffd54a", "#a3e635", "#ff4d6d"][i % 5],
+          }))
+        : [],
+    [showConfetti],
+  );
 
   const stat = (label: string, value: string, testId?: string) => (
     <div className="results__stat" data-testid={testId}>
@@ -63,11 +84,30 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
           {result.levelTitle} · {result.difficulty}
         </p>
 
+        {confetti.map((c) => (
+          <span
+            key={c.id}
+            className="confetti"
+            style={{
+              left: c.left,
+              background: c.color,
+              animationDelay: c.delay,
+              animationDuration: c.duration,
+            }}
+            aria-hidden="true"
+          />
+        ))}
         {result.isNewBest && <div className="results__badge">★ NEW LOCAL BEST ★</div>}
         {result.rank !== null && result.rank <= 10 && (
           <div className="results__badge">TOP {result.rank} ON THE BOARD</div>
         )}
 
+        <div className="judgment-bar" aria-hidden="true">
+          <span className="judgment-bar__perfect" style={{ width: barPct(result.perfects) }} />
+          <span className="judgment-bar__great" style={{ width: barPct(result.greats) }} />
+          <span className="judgment-bar__good" style={{ width: barPct(result.goods) }} />
+          <span className="judgment-bar__miss" style={{ width: barPct(result.misses) }} />
+        </div>
         <div className="results__grid">
           {stat("SCORE", result.score.toLocaleString("en-US"), "result-score")}
           {stat("MAX COMBO", `${result.maxCombo}×`)}

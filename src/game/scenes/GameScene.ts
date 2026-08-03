@@ -83,9 +83,12 @@ export class GameScene extends Phaser.Scene {
 
   private grid!: Phaser.GameObjects.Graphics;
   private laneLines!: Phaser.GameObjects.Graphics;
+  private persp!: Phaser.GameObjects.Graphics;
   private hitZone!: Phaser.GameObjects.Graphics;
   private hurtFlash!: Phaser.GameObjects.Rectangle;
   private beatGlow!: Phaser.GameObjects.Rectangle;
+  private rings: Phaser.GameObjects.Image[] = [];
+  private sky!: Phaser.GameObjects.Graphics;
 
   private killEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   private sparkEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -179,51 +182,100 @@ export class GameScene extends Phaser.Scene {
   }
 
   private buildBackground(): void {
-    // --- Synthwave sun ------------------------------------------------------
-    this.sun = this.add.image(GAME_WIDTH / 2, 190, "sun").setDepth(0.5).setAlpha(0.95);
+    const HORIZON = 300;
 
-    // --- Twinkling stars -----------------------------------------------------
+    // --- Sky gradient (deep purple rising to a glow at the horizon) ----------
+    this.sky = this.add.graphics().setDepth(0);
+    const top = new Phaser.Display.Color(10, 1, 24);
+    const bottom = new Phaser.Display.Color(64, 12, 92);
+    for (let y = 0; y <= HORIZON; y += 6) {
+      const t = y / HORIZON;
+      const c = Phaser.Display.Color.Interpolate.ColorWithColor(top, bottom, 1, t);
+      this.sky.fillStyle(Phaser.Display.Color.GetColor(c.r, c.g, c.b), 1);
+      this.sky.fillRect(0, y, GAME_WIDTH, 6);
+    }
+    this.sky.fillStyle(0x2a0a55, 1);
+    this.sky.fillRect(0, HORIZON, GAME_WIDTH, 3);
+
+    // --- Sun (behind the grid lines for the classic sliced look) -------------
+    this.sun = this.add.image(GAME_WIDTH / 2, 170, "sun").setDepth(0.5).setAlpha(0.95);
+
+    // --- Horizon glow + twinkling stars --------------------------------------
+    this.add
+      .image(GAME_WIDTH / 2, HORIZON + 4, "glow")
+      .setDepth(0.55)
+      .setScale(4.6, 0.9)
+      .setTint(0xff2ec4)
+      .setAlpha(0.6);
     this.stars = [];
     const rng = mulberry32(this.level?.seed ?? 1337);
     for (let i = 0; i < 70; i++) {
       const star = this.add
-        .image(rng() * GAME_WIDTH, rng() * 320, "star")
+        .image(rng() * GAME_WIDTH, rng() * 280, "star")
         .setDepth(0.5)
         .setAlpha(0.2 + rng() * 0.6)
         .setScale(0.5 + rng() * 1.2);
       this.stars.push(star);
     }
 
-    // --- Scrolling synthwave grid -------------------------------------------
+    // --- City skyline silhouette ----------------------------------------------
+    this.add
+      .image(GAME_WIDTH / 2, HORIZON, "city")
+      .setDepth(0.6)
+      .setOrigin(0.5, 1)
+      .setAlpha(0.95);
+
+    // --- Scrolling synthwave grid (full height, retro) ------------------------
     this.grid = this.add.graphics({ x: 0, y: 0 }).setDepth(1);
-    this.grid.fillStyle(0x1a0b33, 0.55);
+    this.grid.fillStyle(0x1a0b33, 0.5);
     const step = 48;
     for (let y = -step; y <= GAME_HEIGHT; y += step) {
       this.grid.fillRect(0, y, GAME_WIDTH, 2);
     }
 
-    // Lane columns.
-    this.laneLines = this.add.graphics().setDepth(2);
-    for (let lane = 0; lane < LANE_COUNT; lane++) {
-      this.laneLines.lineStyle(2, laneColor(lane), 0.28);
-      this.laneLines.lineBetween(laneX(lane), 0, laneX(lane), GAME_HEIGHT);
+    // --- Perspective floor lines (converging at the horizon) ------------------
+    this.persp = this.add.graphics().setDepth(1.05);
+    this.persp.lineStyle(2, 0x3a1560, 0.35);
+    for (let x = 0; x <= GAME_WIDTH; x += 40) {
+      this.persp.lineBetween(x, GAME_HEIGHT, GAME_WIDTH / 2 + (x - GAME_WIDTH / 2) * 0.07, HORIZON);
     }
 
-    // Hit zone brackets.
+    // --- Lane columns: brighter toward the hit zone (readability) -------------
+    this.laneLines = this.add.graphics().setDepth(2);
+    for (let lane = 0; lane < LANE_COUNT; lane++) {
+      const x = laneX(lane);
+      const color = laneColor(lane);
+      for (let y = 0; y < HIT_Y; y += 40) {
+        const t = y / HIT_Y;
+        this.laneLines.lineStyle(2, color, 0.1 + t * 0.3);
+        this.laneLines.lineBetween(x, y, x, Math.min(y + 40, HIT_Y));
+      }
+    }
+
+    // --- Glowing target rings (where the beat lands) --------------------------
+    this.rings = [];
+    for (let lane = 0; lane < LANE_COUNT; lane++) {
+      const ring = this.add
+        .image(laneX(lane), HIT_Y, "target")
+        .setDepth(3)
+        .setTint(laneColor(lane))
+        .setAlpha(0.4);
+      this.rings.push(ring);
+    }
+
+    // --- Hit line (subtle floor marker) ---------------------------------------
     this.hitZone = this.add.graphics().setDepth(3);
     for (let lane = 0; lane < LANE_COUNT; lane++) {
       const x = laneX(lane);
-      this.hitZone.lineStyle(3, laneColor(lane), 0.9);
-      this.hitZone.lineBetween(x - 40, HIT_Y - 26, x - 40, HIT_Y);
-      this.hitZone.lineBetween(x + 40, HIT_Y - 26, x + 40, HIT_Y);
-      this.hitZone.lineBetween(x - 40, HIT_Y, x + 40, HIT_Y);
+      this.hitZone.lineStyle(2, laneColor(lane), 0.5);
+      this.hitZone.lineBetween(x - 34, HIT_Y, x + 34, HIT_Y);
     }
 
-    // Fullscreen flash layers.
+    // --- Fullscreen flash layers ----------------------------------------------
     this.beatGlow = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff, 0).setDepth(9);
     this.hurtFlash = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, MISS_COLOR, 0).setDepth(9);
 
-    // Soft vignette on top of everything (below UI).
+    // --- Soft vignette on top of everything (below UI) ------------------------
     this.vignette = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "vignette").setDepth(9.5).setAlpha(0.9);
   }
 
@@ -270,6 +322,7 @@ export class GameScene extends Phaser.Scene {
 
         this.running = true;
     this.cameras.main.shake(0, 0);
+    this.showGetReady();
     audioEngine.ensureStarted();
     const trackId = useSettingsStore.getState().trackForLevel(slug, level.defaultTrack);
     audioEngine.startMusic(level, trackId);
@@ -281,6 +334,36 @@ export class GameScene extends Phaser.Scene {
     audioEngine.stopMusic();
     for (const ns of this.notes) ns.enemy?.destroy();
     this.notes = [];
+  }
+
+  /** Brief "GET READY" flash so players know the run has started. */
+  private showGetReady(): void {
+    const text = this.add
+      .text(GAME_WIDTH / 2, 300, "GET READY", {
+        fontFamily: '"Orbitron", monospace',
+        fontSize: "38px",
+        color: "#ffffff",
+        stroke: "#ff2ec4",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(9.6)
+      .setAlpha(0);
+    this.tweens.add({
+      targets: text,
+      alpha: 1,
+      duration: 130,
+      onComplete: () => {
+        this.tweens.add({
+          targets: text,
+          alpha: 0,
+          y: 270,
+          duration: 650,
+          delay: 700,
+          onComplete: () => text.destroy(),
+        });
+      },
+    });
   }
 
   /** Current run context (used by GameBridge.restart). */
@@ -413,6 +496,16 @@ export class GameScene extends Phaser.Scene {
 
   private pulseBeat(): void {
     this.pads.pulse();
+    for (const ring of this.rings) {
+      this.tweens.add({
+        targets: ring,
+        scale: 1.14,
+        alpha: 0.85,
+        duration: 90,
+        yoyo: true,
+        onComplete: () => ring.setScale(1),
+      });
+    }
     this.tweens.add({
       targets: this.beatGlow,
       fillAlpha: 0.05,

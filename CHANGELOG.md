@@ -4,6 +4,20 @@ All notable changes to Tap & Slap are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-08-03
+
+### Art rework & clarity pass
+- **In-game art v2:** DDR-style direction arrows baked into every enemy
+  (goon / brute / imp silhouettes), glowing target rings where the beat
+  lands, synthwave city skyline, horizon glow, perspective floor, sky
+  gradient, lane columns that brighten toward the hit zone, spawn fade-ins,
+  "GET READY" flash at run start.
+- **UI rework:** difficulty pills (EASY/NORMAL/HARD), Daily Challenge
+  spotlight card with countdown, "pick → slap → top" steps strip, gradient
+  PLAY button, equalizer bars on the active track, SCORE label in the HUD,
+  judgment breakdown bar + confetti on the results screen.
+- **New menu artwork** (cleaner composition, 41 KB vs 91 KB).
+
 ## [0.1.0] — 2026-08-02
 
 Initial MVP release.
