@@ -1,0 +1,10 @@
+# Served live by the app via src/app/robots.ts
+User-Agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://YOUR-DEPLOYED-ORIGIN/sitemap.xml
+```
+Note: GitHub repo pages have GitHub-managed robots — you cannot upload a
+robots.txt to a repo. This file governs the DEPLOYED app.
+```

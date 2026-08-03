@@ -26,8 +26,10 @@
   <a href="https://phaser.io"><img src="https://img.shields.io/badge/Phaser-3.90-22d3ee.svg" alt="Phaser 3.90"/></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg?logo=typescript&logoColor=white" alt="TypeScript strict"/></a>
   <a href="https://www.prisma.io"><img src="https://img.shields.io/badge/Prisma-6-2d3748.svg?logo=prisma" alt="Prisma 6"/></a>
-  <a href="https://vitest.dev"><img src="https://img.shields.io/badge/tests-74%20passing-a3e635.svg" alt="74 tests passing"/></a>
+  <a href="https://vitest.dev"><img src="https://img.shields.io/badge/tests-81%20passing-a3e635.svg" alt="74 tests passing"/></a>
   <a href="https://www.playwright.dev"><img src="https://img.shields.io/badge/E2E-Playwright-2e6d4f.svg?logo=playwright&logoColor=white" alt="Playwright E2E"/></a>
+  <a href="https://github.com/DLinacre/tap-and-slap/actions"><img src="https://img.shields.io/github/actions/workflow/status/DLinacre/tap-and-slap/ci.yml" alt="CI status"/></a>
+  <a href="https://tap-and-slap.vercel.app"><img src="https://img.shields.io/badge/▶%20play-tap--and--slap.vercel.app-ff2ec4.svg" alt="Play the game"/></a>
   <a href="https://github.com/DLinacre/tap-and-slap"><img src="https://img.shields.io/github/stars/DLinacre/tap-and-slap?style=social" alt="GitHub stars"/></a>
   <a href="https://github.com/DLinacre/tap-and-slap/issues"><img src="https://img.shields.io/github/issues/DLinacre/tap-and-slap?color=ffd54a" alt="Issues"/></a>
   <img src="https://img.shields.io/badge/PRs-welcome-ff8a3d.svg" alt="PRs welcome"/>
@@ -117,7 +119,7 @@ Demo account (seeded): `demo@tapslap.dev` / `tap-slap-demo`
 ```bash
 npm run lint                  # ESLint (flat config, zero warnings)
 npm run typecheck             # tsc --noEmit (strict + noUncheckedIndexedAccess)
-npm test                      # 74 unit/component tests (Vitest)
+npm test                      # 81 unit/component tests (Vitest)
 npm run build && npm run test:e2e   # 4 Playwright smoke tests vs production build
 ```
 

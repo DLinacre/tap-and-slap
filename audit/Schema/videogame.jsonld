@@ -1,0 +1,22 @@
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Tap & Slap",
+  "description": "Tap & Slap is a dance-mat beat 'em up: tap to kill enemies exactly on the beat. Four neon lanes, combo multipliers, procedural synthwave fight music — keyboard or touch, free to play in your browser.",
+  "genre": ["Rhythm", "Action", "Beat 'em up"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Web browser",
+  "browserRequirements": "Requires JavaScript and an HTML5 browser",
+  "gamePlatform": "Web",
+  "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "GBP",
+    "availability": "https://schema.org/InStock"
+  },
+  "publisher": { "@type": "Organization", "name": "Tap & Slap" },
+  "keywords": "rhythm game, beat em up, tap game, dance mat, browser game"
+}
+```
+*Live in `src/app/layout.tsx` (injected as `<script type="application/ld+json">`).*

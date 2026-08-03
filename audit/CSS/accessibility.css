@@ -1,0 +1,41 @@
+/* Accessibility CSS — applied to src/app/globals.css (commit dd71456) */
+
+/* 1. Visible keyboard focus (WCAG 2.2 2.4.7) */
+:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* 2. Respect reduced motion (WCAG 2.2 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 3. Screen-reader-only utility (for aria-live regions / canvas fallback) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 4. Future high-contrast theme toggle */
+@media (prefers-contrast: more) {
+  :root {
+    --text-dim: #d9ccf2;
+    --panel: rgba(10, 1, 24, 0.94);
+  }
+}
