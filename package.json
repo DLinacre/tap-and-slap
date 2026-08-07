@@ -30,12 +30,12 @@
   "dependencies": {
     "@prisma/client": "6.19.3",
     "bcryptjs": "^3.0.3",
-    "next": "^15.3.3",
+    "next": "^16.3.0",
     "next-auth": "^5.0.0-beta.29",
-    "phaser": "^3.90.0",
+    "phaser": "^4.2.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zod": "^3.25.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
