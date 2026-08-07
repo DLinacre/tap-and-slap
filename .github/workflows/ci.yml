@@ -15,7 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      DATABASE_URL: "file:./ci.db"
+      # Production-shaped database: PostgreSQL (matches prisma/schema.prisma).
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/tap_and_slap_test"
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tap_and_slap_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v7
 
@@ -43,7 +58,7 @@ jobs:
         run: npm run build
 
       - name: Seed database
-        run: npx prisma db push && npm run db:seed
+        run: npx prisma migrate deploy && npm run db:seed
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

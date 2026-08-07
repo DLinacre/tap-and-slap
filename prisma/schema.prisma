@@ -1,8 +1,9 @@
 // =============================================================================
-// Tap & Slap — Prisma schema (MVP)
+// Tap & Slap — Prisma schema
 //
-// Dev target: SQLite (zero-config). Production target: PostgreSQL — the schema
-// below is intentionally portable; swap `provider` and re-run `prisma migrate`.
+// PostgreSQL everywhere (dev + production). SQLite cannot persist across
+// Vercel serverless instances, which is why v1.2 moves the whole project to
+// Postgres (free hosted options: Neon, Supabase, Railway).
 // (See docs/03-database.md for the ERD and migration strategy.)
 // =============================================================================
 
@@ -11,7 +12,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
