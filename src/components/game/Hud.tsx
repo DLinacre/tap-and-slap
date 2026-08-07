@@ -25,7 +25,7 @@ export function Hud() {
   const lastAnnounced = useRef({ judgmentId: -1, combo: 0 });
 
   // Live announcements — one string per significant event.
-  let announcement = "";
+  let announcement = hud.countdown ?? "";
   if (hud.judgment && hud.judgment.id !== lastAnnounced.current.judgmentId) {
     lastAnnounced.current.judgmentId = hud.judgment.id;
     const label =
@@ -93,6 +93,12 @@ export function Hud() {
           className={`hud__judgment ${JUDGMENT_CLASS[hud.judgment.type] ?? ""}`}
         >
           {hud.judgment.type.toUpperCase()}
+        </div>
+      )}
+
+      {hud.countdown && (
+        <div className="hud__countdown" key={hud.countdown} data-testid="countdown">
+          {hud.countdown}
         </div>
       )}
 

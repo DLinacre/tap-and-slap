@@ -58,7 +58,7 @@ export function buildDailyDef(date: Date): LevelDef {
     palette: {
       bg: 0x0a0118,
       accent: 0xff2ec4,
-      lanes: [0x2f6bff, 0xffd23f, 0xff4d6d, 0x2ee66d],
+      lanes: [0x4f8bff, 0xffe14d, 0xff6b8a, 0x4df08c],
     },
     map: generateMap({
       seed,

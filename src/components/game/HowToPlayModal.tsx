@@ -29,7 +29,7 @@ export function HowToPlayModal({ onClose }: HowToPlayModalProps) {
           </li>
           <li>
             <strong>Score big.</strong> PERFECT (±45ms) &gt; GREAT (±90ms) &gt;
-            GOOD (±150ms). Heavy enemies score ×1.5. Combos stack to ×8 —
+            GOOD (a generous window, extra lenient on the late side for touch). Heavy enemies score ×1.5. Combos stack to ×8 —
             misses cost health.
           </li>
         </ol>

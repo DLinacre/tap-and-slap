@@ -39,12 +39,23 @@ export const PAD_ZONE_HEIGHT = 300; // generous reachable area above the line
 export const DEFAULT_APPROACH_BEATS = 4; // beats of approach time per note
 
 // --- Judgment windows (ms) --------------------------------------------------
+// Asymmetric on purpose: touch devices & Bluetooth audio add latency that
+// makes by-ear taps land LATE, so the late side is extra generous while the
+// early side stays strict (mashing ahead never pays).
 export interface JudgmentWindows {
   perfectMs: number;
   greatMs: number;
-  goodMs: number;
+  /** Max allowed for taps BEFORE the beat (early side). */
+  goodEarlyMs: number;
+  /** Max allowed for taps AFTER the beat (late side — latency forgiving). */
+  goodLateMs: number;
 }
-export const JUDGMENT_WINDOWS: JudgmentWindows = { perfectMs: 45, greatMs: 90, goodMs: 150 };
+export const JUDGMENT_WINDOWS: JudgmentWindows = {
+  perfectMs: 45,
+  greatMs: 90,
+  goodEarlyMs: 140,
+  goodLateMs: 190,
+};
 
 // --- Health economy ----------------------------------------------------------
 export const MAX_HEALTH = 100;
@@ -57,9 +68,9 @@ export const COMBO_MULTIPLIER_STEP = 10; // +1 multiplier every N combo
 export const COMBO_MULTIPLIER_CAP = 8;
 
 // --- Palette ------------------------------------------------------------------
-// Brightened lane palette — v1.1's 0x2f6bff / 0xff4d6d fell below WCAG 1.4.11
-// (≥3:1) against #0a0118, making the middle lanes read as inactive. These pass.
-export const LANE_COLORS = [0x3f7bff, 0xffd23f, 0xff5f7a, 0x3ee67c] as const;
+// Brightened lane palette — every lane must clearly read as ACTIVE on OLED
+// screens (Poco F7 etc.). The middle lanes get the brightest treatment.
+export const LANE_COLORS = [0x4f8bff, 0xffe14d, 0xff6b8a, 0x4df08c] as const;
 export const BG_COLOR = 0x0a0118;
 export const ACCENT_COLOR = 0xff2ec4;
 export const PERFECT_COLOR = 0xffd54a;

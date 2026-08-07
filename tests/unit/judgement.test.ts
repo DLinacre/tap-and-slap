@@ -4,7 +4,7 @@ import { JUDGMENT_WINDOWS } from "@/game/config";
 
 describe("judgeNote", () => {
   const noteTime = 10_000;
-  const { perfectMs, greatMs, goodMs } = JUDGMENT_WINDOWS;
+  const { perfectMs, greatMs, goodEarlyMs, goodLateMs } = JUDGMENT_WINDOWS;
 
   it("perfect within ±45ms", () => {
     expect(judgeNote(noteTime, noteTime).type).toBe("perfect");
@@ -18,29 +18,34 @@ describe("judgeNote", () => {
     expect(judgeNote(noteTime, noteTime - greatMs).type).toBe("great");
   });
 
-  it(`good within ±${goodMs}ms`, () => {
-    expect(judgeNote(noteTime, noteTime + greatMs + 1).type).toBe("good");
-    expect(judgeNote(noteTime, noteTime + goodMs).type).toBe("good");
+  it(`good early within ±${goodEarlyMs}ms`, () => {
+    expect(judgeNote(noteTime, noteTime - greatMs - 1).type).toBe("good");
+    expect(judgeNote(noteTime, noteTime - goodEarlyMs).type).toBe("good");
+    expect(judgeNote(noteTime, noteTime - goodEarlyMs - 1).type).toBe("miss");
   });
 
-  it(`miss beyond ${goodMs}ms`, () => {
-    expect(judgeNote(noteTime, noteTime + goodMs + 1).type).toBe("miss");
-    expect(judgeNote(noteTime, noteTime - 200).type).toBe("miss");
+  it(`good late within +${goodLateMs}ms (latency-forgiving)`, () => {
+    expect(judgeNote(noteTime, noteTime + greatMs + 1).type).toBe("good");
+    expect(judgeNote(noteTime, noteTime + goodLateMs).type).toBe("good");
+    expect(judgeNote(noteTime, noteTime + goodLateMs + 1).type).toBe("miss");
   });
 
   it("custom windows are respected", () => {
-    const windows = { perfectMs: 10, greatMs: 20, goodMs: 30 };
+    const windows = { perfectMs: 10, greatMs: 20, goodEarlyMs: 30, goodLateMs: 40 };
     expect(judgeNote(noteTime, noteTime + 15, windows).type).toBe("great");
-    expect(judgeNote(noteTime, noteTime + 25, windows).type).toBe("good");
+    expect(judgeNote(noteTime, noteTime - 25, windows).type).toBe("good");
+    expect(judgeNote(noteTime, noteTime + 35, windows).type).toBe("good");
+    expect(judgeNote(noteTime, noteTime - 35, windows).type).toBe("miss");
   });
 });
 
 describe("isWithinWindow", () => {
-  it("true only inside the good window", () => {
-    const { goodMs } = JUDGMENT_WINDOWS;
-    expect(isWithinWindow(1000, 1000 + goodMs - 1)).toBe(true);
-    expect(isWithinWindow(1000, 1000 + goodMs + 1)).toBe(false);
-    expect(isWithinWindow(1000, 1000 - goodMs - 1)).toBe(false);
+  it("true only inside the (asymmetric) window", () => {
+    const { goodEarlyMs, goodLateMs } = JUDGMENT_WINDOWS;
+    expect(isWithinWindow(1000, 1000 - goodEarlyMs)).toBe(true);
+    expect(isWithinWindow(1000, 1000 - goodEarlyMs - 1)).toBe(false);
+    expect(isWithinWindow(1000, 1000 + goodLateMs)).toBe(true);
+    expect(isWithinWindow(1000, 1000 + goodLateMs + 1)).toBe(false);
   });
 });
 

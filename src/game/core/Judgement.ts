@@ -1,10 +1,11 @@
 /**
  * Judgment logic — pure functions over timing windows.
  *
- * Windows are absolute ms offsets around a note's hit time:
+ * Windows are asymmetric ms offsets around a note's hit time:
  *   |now - noteTime| <= perfectMs  → PERFECT
  *   <= greatMs                     → GREAT
- *   <= goodMs                      → GOOD
+ *   early side <= goodEarlyMs      → GOOD (strict — no mashing ahead)
+ *   late side  <= goodLateMs       → GOOD (lenient — touch/Bluetooth latency)
  *   otherwise                      → MISS
  */
 
@@ -16,7 +17,7 @@ export const JUDGMENT_ORDER: JudgmentType[] = ["perfect", "great", "good", "miss
 
 export interface JudgmentResult {
   type: JudgmentType;
-  /** Absolute ms deviation from the note time (0 = exactly on the beat). */
+  /** Signed ms deviation (negative = early, positive = late). */
   deltaMs: number;
 }
 
@@ -25,20 +26,23 @@ export function judgeNote(
   nowMs: number,
   windows: JudgmentWindows = JUDGMENT_WINDOWS,
 ): JudgmentResult {
-  const deltaMs = Math.abs(nowMs - noteTimeMs);
-  if (deltaMs <= windows.perfectMs) return { type: "perfect", deltaMs };
-  if (deltaMs <= windows.greatMs) return { type: "great", deltaMs };
-  if (deltaMs <= windows.goodMs) return { type: "good", deltaMs };
+  const deltaMs = nowMs - noteTimeMs; // negative = early, positive = late
+  const abs = Math.abs(deltaMs);
+  if (abs <= windows.perfectMs) return { type: "perfect", deltaMs };
+  if (abs <= windows.greatMs) return { type: "great", deltaMs };
+  const goodLimit = deltaMs < 0 ? windows.goodEarlyMs : windows.goodLateMs;
+  if (abs <= goodLimit) return { type: "good", deltaMs };
   return { type: "miss", deltaMs };
 }
 
-/** Is `nowMs` inside any hittable window for the note? */
+/** Is `nowMs` inside any hittable window for the note? (asymmetric) */
 export function isWithinWindow(
   noteTimeMs: number,
   nowMs: number,
   windows: JudgmentWindows = JUDGMENT_WINDOWS,
 ): boolean {
-  return Math.abs(nowMs - noteTimeMs) <= windows.goodMs;
+  const delta = nowMs - noteTimeMs;
+  return delta >= 0 ? delta <= windows.goodLateMs : -delta <= windows.goodEarlyMs;
 }
 
 /** Weight used for accuracy (DDR-style). */

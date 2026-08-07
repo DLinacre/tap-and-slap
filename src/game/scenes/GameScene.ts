@@ -43,6 +43,7 @@ import {
   laneX,
 } from "@/game/config";
 import { baseScoreFor } from "@/game/levels/types";
+import type { TrackId } from "@/game/audio/tracks";
 import { newRunId, submitScoreResilient, maybeSaveLocalBest } from "@/lib/client/api";
 import { track } from "@/lib/client/analytics";
 import type { Difficulty } from "@/game/levels/types";
@@ -114,6 +115,11 @@ export class GameScene extends Phaser.Scene {
   private gridOffset = 0;
   private perfectStreak = 0;
   private lastMilestoneCombo = 0;
+  /** Pre-run countdown (ms left until the beat clock + music start). */
+  private countdownLeftMs = 0;
+  private countdownTotalMs = 0;
+  private countdownShownIdx = -1;
+  private pendingTrackId: TrackId | null = null;
   /** Timing coach: counts of taps that missed the window (early/late). */
   private attemptsEarly = 0;
   private attemptsLate = 0;
@@ -160,9 +166,13 @@ export class GameScene extends Phaser.Scene {
     this.inputCtrl = new InputController(this, (lane) => this.hitLane(lane));
     this.inputCtrl.enable();
 
-    // Pointer: tap an enemy directly (mobile "tap to kill").
+    // Pointer (touch/mouse): ONE judge — tap anywhere in a lane column and
+    // it presses that lane. This kills the old double-judgement race (pad
+    // zones + proximity handler could both consume one tap) and makes the
+    // whole column the hit target, Guitar-Hero style.
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      this.handlePointerTap(pointer);
+      const lane = this.laneForX(pointer.x);
+      if (lane >= 0 && lane < LANE_COUNT) this.hitLane(lane);
     });
 
     this.killEmitter = this.add.particles(0, 0, "spark", {
@@ -260,16 +270,30 @@ export class GameScene extends Phaser.Scene {
       this.persp.lineBetween(x, GAME_HEIGHT, GAME_WIDTH / 2 + (x - GAME_WIDTH / 2) * 0.07, HORIZON);
     }
 
-    // --- Lane columns: brighter toward the hit zone (readability) -------------
-    // v1.2: raised every segment's alpha so all four lanes pass WCAG 1.4.11
-    // (≥3:1) against the background — the middle lanes no longer read as dim.
+    // --- Lane columns: BRIGHT, full-height fills + bright rails ---------------
+    // v1.3.3: every lane gets a translucent coloured column fill plus thick
+    // bright rails, so all four lanes (especially the middle two) clearly
+    // read as ACTIVE even on OLED phones at low brightness.
+    for (let lane = 0; lane < LANE_COUNT; lane++) {
+      const x = laneX(lane);
+      const color = laneColor(lane);
+      // Column fill: constant, clearly visible (v1.3.3 raised to 0.2).
+      this.add
+        .rectangle(x, HIT_Y / 2, 112, HIT_Y, color, 0.2)
+        .setDepth(1.8);
+      // Rail glow near the hit zone — bright so the line reads instantly.
+      this.add
+        .rectangle(x, HIT_Y - 46, 112, 92, color, 0.32)
+        .setDepth(1.85);
+    }
     this.laneLines = this.add.graphics().setDepth(2);
     for (let lane = 0; lane < LANE_COUNT; lane++) {
       const x = laneX(lane);
       const color = laneColor(lane);
       for (let y = 0; y < HIT_Y; y += 40) {
         const t = y / HIT_Y;
-        this.laneLines.lineStyle(3, color, 0.24 + t * 0.45);
+        // Thick rail lines, bright from top to bottom.
+        this.laneLines.lineStyle(4, color, 0.75 + t * 0.25);
         this.laneLines.lineBetween(x, y, x, Math.min(y + 40, HIT_Y));
       }
     }
@@ -290,16 +314,17 @@ export class GameScene extends Phaser.Scene {
         .image(laneX(lane), HIT_Y, "target")
         .setDepth(3)
         .setTint(laneColor(lane))
-        .setAlpha(0.4);
+        .setAlpha(0.65)
+        .setScale(1.15);
       this.rings.push(ring);
     }
 
-    // --- Hit line (subtle floor marker) ---------------------------------------
+    // --- Hit line (bright floor marker) ---------------------------------------
     this.hitZone = this.add.graphics().setDepth(3);
     for (let lane = 0; lane < LANE_COUNT; lane++) {
       const x = laneX(lane);
-      this.hitZone.lineStyle(3, laneColor(lane), 0.85);
-      this.hitZone.lineBetween(x - 34, HIT_Y, x + 34, HIT_Y);
+      this.hitZone.lineStyle(4, laneColor(lane), 1);
+      this.hitZone.lineBetween(x - 38, HIT_Y, x + 38, HIT_Y);
     }
 
     // --- Fullscreen flash layers ----------------------------------------------
@@ -307,7 +332,7 @@ export class GameScene extends Phaser.Scene {
     this.hurtFlash = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, MISS_COLOR, 0).setDepth(9);
 
     // --- Soft vignette on top of everything (below UI) ------------------------
-    this.vignette = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "vignette").setDepth(9.5).setAlpha(0.9);
+    this.vignette = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "vignette").setDepth(9.5).setAlpha(0.75);
   }
 
   // ---------------------------------------------------------------------------
@@ -331,9 +356,9 @@ export class GameScene extends Phaser.Scene {
     this.attemptsEarly = 0;
     this.attemptsLate = 0;
     this.attemptDeltas = [];
-    // Precompute absolute hit times (includes calibration).
+    // Precompute absolute hit times (includes calibration). The clock is
+    // (re)created here but NOT started until the countdown finishes.
     this.clock = new BeatClock({ bpm: level.bpm, offsetMs: level.map.offsetMs });
-    this.clock.start();
     const calibration = useSettingsStore.getState().calibrationMs;
     for (const ns of this.notes) {
       ns.timeMs = this.clock.msForBeat(ns.note.beat) + calibration;
@@ -354,12 +379,20 @@ export class GameScene extends Phaser.Scene {
     });
     useGameStore.getState().resetHud();
 
-        this.running = true;
+    this.running = true;
     this.cameras.main.shake(0, 0);
-    this.showGetReady();
+    // Pre-run countdown: 4 beats (2 in QA mode) so nobody loses early notes
+    // to loading/focus lag. Music + clock start when it hits zero.
     audioEngine.ensureStarted();
-    const trackId = useSettingsStore.getState().trackForLevel(slug, level.defaultTrack);
-    audioEngine.startMusic(level, trackId);
+    this.pendingTrackId = useSettingsStore.getState().trackForLevel(slug, level.defaultTrack);
+    const beatMs = 60_000 / level.bpm;
+    this.countdownTotalMs = Math.max(1200, (options.qa ? 2 : 4) * beatMs);
+    this.countdownLeftMs = this.countdownTotalMs;
+    this.countdownShownIdx = -1;
+    useGameStore.setState({
+      hud: { ...useGameStore.getState().hud, countdown: "GET READY" },
+    });
+    this.pads.pulse();
   }
 
   /** Stop the current run and return to idle (menu). */
@@ -370,34 +403,37 @@ export class GameScene extends Phaser.Scene {
     this.notes = [];
   }
 
-  /** Brief "GET READY" flash so players know the run has started. */
-  private showGetReady(): void {
-    const text = this.add
-      .text(GAME_WIDTH / 2, 300, "GET READY", {
-        fontFamily: '"Orbitron", monospace',
-        fontSize: "38px",
-        color: "#ffffff",
-        stroke: "#ff2ec4",
-        strokeThickness: 6,
-      })
-      .setOrigin(0.5)
-      .setDepth(9.6)
-      .setAlpha(0);
-    this.tweens.add({
-      targets: text,
-      alpha: 1,
-      duration: 130,
-      onComplete: () => {
-        this.tweens.add({
-          targets: text,
-          alpha: 0,
-          y: 270,
-          duration: 650,
-          delay: 700,
-          onComplete: () => text.destroy(),
-        });
-      },
-    });
+  /** Advance the pre-run countdown; returns true while still counting. */
+  private updateCountdown(deltaMs: number): boolean {
+    if (this.countdownLeftMs <= 0) return false;
+    this.countdownLeftMs -= deltaMs;
+    const beatMs = this.level ? 60_000 / this.level.bpm : 600;
+    const idx = Math.max(1, Math.ceil(this.countdownLeftMs / beatMs));
+    if (idx !== this.countdownShownIdx) {
+      this.countdownShownIdx = idx;
+      this.pads.pulse();
+      const label = idx >= 4 ? "GET READY" : idx > 0 ? String(idx) : "GO!";
+      useGameStore.setState({
+        hud: { ...useGameStore.getState().hud, countdown: label },
+      });
+      if (label === "GO!") this.popup("GO!", GAME_WIDTH / 2, 330, 0x22d3ee, 42);
+    }
+    this.pads.tick();
+    if (this.countdownLeftMs <= 0) {
+      this.countdownLeftMs = 0;
+      useGameStore.setState({
+        hud: { ...useGameStore.getState().hud, countdown: null },
+      });
+      this.clock.start();
+      if (this.level) {
+        audioEngine.startMusic(
+          this.level,
+          this.pendingTrackId ?? (this.level.defaultTrack as TrackId | undefined),
+        );
+      }
+      this.pendingTrackId = null;
+    }
+    return true;
   }
 
   /** Current run context (used by GameBridge.restart). */
@@ -453,6 +489,9 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (!this.running) return;
 
+    // Pre-run countdown: no notes, no misses — just the beat and the number.
+    if (this.updateCountdown(delta)) return;
+
     const now = this.clock.elapsedMs();
     const beatMs = this.clock.beatMs;
 
@@ -494,7 +533,7 @@ export class GameScene extends Phaser.Scene {
         // bot gets a grace extension so headless/CI frame stalls can't
         // produce misses (it then hits with a clamped GOOD judgment).
         // Practice mode is no-fail: missed notes count as GOOD instead.
-        const missDeadline = ns.timeMs + (this.autoplay ? BOT_GRACE_MS : JUDGMENT_WINDOWS.goodMs);
+        const missDeadline = ns.timeMs + (this.autoplay ? BOT_GRACE_MS : JUDGMENT_WINDOWS.goodLateMs);
         if (now >= missDeadline) {
           ns.judged = true;
           this.applyJudgment(this.options.practice ? "good" : "miss", ns);
@@ -592,41 +631,6 @@ export class GameScene extends Phaser.Scene {
       }
     }
     return best;
-  }
-
-  private handlePointerTap(pointer: Phaser.Input.Pointer): void {
-    // A pad zone already consumed this exact tap (zones fire before the
-    // scene-level pointerdown) — one physical tap = one judgement.
-    if (pointer.id === this.pads.lastConsumedPointerId) return;
-    const now = this.clock.elapsedMs();
-    const lane = this.laneForX(pointer.x);
-    if (lane === -1) return;
-
-    // Direct enemy tap: hit-test enemies ONLY inside the tapped lane's
-    // column (v1.1 could judge a note in a neighbouring lane).
-    let best: ActiveNote | null = null;
-    let bestDelta = Infinity;
-    for (const ns of this.notes) {
-      if (ns.judged || !ns.enemy || ns.note.lane !== lane) continue;
-      if (!isWithinWindow(ns.timeMs, now)) continue;
-      const dx = pointer.x - ns.enemy.x;
-      const dy = pointer.y - ns.enemy.y;
-      const r = ns.enemy.hitRadius;
-      if (dx * dx + dy * dy > r * r) continue;
-      const delta = Math.abs(now - ns.timeMs);
-      if (delta < bestDelta) {
-        bestDelta = delta;
-        best = ns;
-      }
-    }
-    if (!best || !best.enemy) return; // pad zones handle taps below the line
-
-    const enemy = best.enemy;
-    const result = judgeNote(best.timeMs, now);
-    best.judged = true;
-    this.applyJudgment(result.type, best);
-    enemy.die();
-    best.enemy = null;
   }
 
   /**
@@ -776,6 +780,7 @@ export class GameScene extends Phaser.Scene {
         judgment: { type, id: this.judgmentId },
         progress: useGameStore.getState().hud.progress,
         perfectStreak: this.perfectStreak,
+        countdown: useGameStore.getState().hud.countdown,
       },
     });
   }
@@ -811,8 +816,8 @@ export class GameScene extends Phaser.Scene {
       for (const ns of this.notes) {
         if (ns.judged || ns.note.lane !== lane) continue;
         // Hittable now (with the bot grace extension for late catch-up).
-        if (now < ns.timeMs - JUDGMENT_WINDOWS.goodMs) continue;
-        if (now > ns.timeMs + JUDGMENT_WINDOWS.goodMs + BOT_GRACE_MS) continue;
+        if (now < ns.timeMs - JUDGMENT_WINDOWS.goodEarlyMs) continue;
+        if (now > ns.timeMs + JUDGMENT_WINDOWS.goodLateMs + BOT_GRACE_MS) continue;
         if (ns.timeMs < earliest) {
           earliest = ns.timeMs;
           target = ns;

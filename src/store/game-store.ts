@@ -27,6 +27,8 @@ export interface HudState {
   progress: number;
   /** Consecutive PERFECT hits (shown in the HUD when ≥ 2). */
   perfectStreak: number;
+  /** Pre-run countdown label ("GET READY" / "3" / "2" / "1"), null during play. */
+  countdown: string | null;
 }
 
 export const INITIAL_HUD: HudState = {
@@ -38,6 +40,7 @@ export const INITIAL_HUD: HudState = {
   judgment: null,
   progress: 0,
   perfectStreak: 0,
+  countdown: null,
 };
 
 export interface GameResult {

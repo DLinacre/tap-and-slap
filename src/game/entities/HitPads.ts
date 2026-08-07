@@ -1,71 +1,65 @@
 /**
- * HitPads — the four touch zones ON the hit line (mobile-first).
+ * HitPads — the four pad visuals ON the hit line.
  *
- * v1.2 fix: pads previously lived at y=750 while enemies died at y=660, so
- * taps aimed at the visible target missed the interactive zone. Pads now sit
- * exactly on the hit line and their interactive zones reach 300px above it,
- * so tapping the enemy OR the pad works — and the visual fill is bright
- * enough that every lane clearly reads as active.
+ * v1.3.3: pads are now PURELY VISUAL. All touch/mouse judging happens in
+ * GameScene's single pointer handler, which maps any tap in a lane column to
+ * that lane — so one physical tap can never double-judge, and the whole
+ * column (not just the pad circle) is the hit target.
  *
- * Tapping a pad is equivalent to pressing the lane's arrow key. Each pad
- * records the pointer id that pressed it so the scene's fallback
- * `pointerdown` handler can never double-judge the same tap.
+ * The pads themselves are big and bright so every lane reads as active:
+ * filled rings at the hit line + a soft under-glow on the track.
  */
 
 import * as Phaser from "phaser";
 import {
   GAME_WIDTH,
   LANE_COUNT,
+  HIT_Y,
   PAD_Y,
-  PAD_ZONE_WIDTH,
-  PAD_ZONE_HEIGHT,
   laneColor,
   laneX,
 } from "../config";
 import type { Lane } from "../levels/types";
 
-const PAD_RADIUS = 46;
-const PAD_FILL_ALPHA = 0.32; // v1.1 shipped 0.10 — looked disabled
-const PAD_STROKE_ALPHA = 0.95;
+const PAD_RADIUS = 50;
+const PAD_FILL_ALPHA = 0.5;
+const PAD_STROKE_ALPHA = 1;
 
 export class HitPads {
   private rings: Phaser.GameObjects.Arc[] = [];
   private glow = 0;
-  /** Pointer id of the most recent pad press (guards against double-judging). */
-  lastConsumedPointerId = -1;
 
   constructor(
     private readonly scene: Phaser.Scene,
-    private readonly onLane: (lane: Lane) => void,
+    onLane: (lane: Lane) => void,
   ) {
+    void onLane; // judging is handled by GameScene's pointer handler
     for (let lane = 0; lane < LANE_COUNT; lane++) {
       const x = laneX(lane);
       const color = laneColor(lane);
 
+      // Soft under-glow on the track below the pad.
+      this.scene.add
+        .circle(x, HIT_Y + 70, 74, color, 0.16)
+        .setDepth(3.6);
+
       const ring = this.scene.add.circle(x, PAD_Y, PAD_RADIUS, color, PAD_FILL_ALPHA);
-      ring.setStrokeStyle(4, color, PAD_STROKE_ALPHA);
+      ring.setStrokeStyle(5, color, PAD_STROKE_ALPHA);
       ring.setDepth(4);
       this.rings.push(ring);
 
-      // Label: keyboard hint on desktop (arrows), blank on touch.
+      // Label: keyboard hint on desktop (arrows), bright white for contrast.
       this.scene.add
         .text(x, PAD_Y, ["◀", "▼", "▲", "▶"][lane]!, {
           fontFamily: '"Orbitron", monospace',
-          fontSize: "22px",
+          fontSize: "24px",
           color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 3,
         })
         .setOrigin(0.5)
         .setDepth(4)
-        .setAlpha(0.95);
-
-      // Interactive zone: a generous column on/above the hit line. Tapping
-      // the enemy OR the pad area registers — no more dead zones.
-      const zone = this.scene.add.zone(x, PAD_Y, PAD_ZONE_WIDTH, PAD_ZONE_HEIGHT);
-      zone.setInteractive({ useHandCursor: false });
-      zone.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-        this.lastConsumedPointerId = pointer.id;
-        this.onLane(lane as Lane);
-      });
+        .setAlpha(1);
     }
   }
 
@@ -75,7 +69,7 @@ export class HitPads {
     if (!ring) return;
     this.scene.tweens.add({
       targets: ring,
-      fillAlpha: 0.6,
+      fillAlpha: 0.85,
       scale: 1.18,
       duration: 70,
       yoyo: true,
@@ -93,8 +87,8 @@ export class HitPads {
     for (const ring of this.rings) {
       this.scene.tweens.add({
         targets: ring,
-        fillAlpha: PAD_FILL_ALPHA + 0.14,
-        scale: 1.07,
+        fillAlpha: PAD_FILL_ALPHA + 0.2,
+        scale: 1.08,
         duration: 90,
         yoyo: true,
         onComplete: () => ring.setScale(1),
@@ -107,7 +101,7 @@ export class HitPads {
     if (this.glow > 0) {
       this.glow = Math.max(0, this.glow - 0.05);
       for (const ring of this.rings) {
-        ring.setStrokeStyle(4 + this.glow * 3, 0xffffff, 0.55 + this.glow * 0.4);
+        ring.setStrokeStyle(5 + this.glow * 3, 0xffffff, 0.6 + this.glow * 0.4);
       }
     }
   }

@@ -45,14 +45,8 @@ export function Menu({ onSignIn }: MenuProps) {
   const [showHowTo, setShowHowTo] = useState(false);
   const selected = levels.find((l) => l.slug === selectedSlug) ?? levels[0] ?? null;
 
-  // First visit: open the How-to-Play modal once (dismissible, never blocking).
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!window.localStorage.getItem("tas.seenHowTo")) {
-      window.localStorage.setItem("tas.seenHowTo", "1");
-      setShowHowTo(true);
-    }
-  }, []);
+  // How-to-Play is available via the ❓ button — it must never auto-open
+  // and intercept the first START tap (v1.3.3: removed auto-open).
 
   // Countdown to midnight UTC for the daily challenge card.
   useEffect(() => {

@@ -4,7 +4,35 @@ All notable changes to Tap & Slap are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.3] — 2026-08-07
+
+### The three big fixes from playtesting on a Poco F7
+
+- **Lanes you can actually see:** every lane now has a translucent coloured
+  column fill + thick bright rails + a bright hit-zone band, with a
+  brightened palette (gold/coral get the strongest treatment) and a lighter
+  vignette. The middle two lanes no longer read as inactive or dim.
+- **Pre-run countdown:** GET READY → 3 → 2 → 1 → GO before the beat clock
+  and music start (4 beats, 2 in QA mode). No more losing early notes while
+  you're still loading in. Countdown numbers render in the HUD and are
+  announced to screen readers.
+- **Touch hitbox rework (one judge per tap):** the old design had pad zones
+  AND a proximity handler both consuming one tap (double judgements, wrong
+  lanes). Now a single handler maps ANY tap in a lane column to that lane —
+  the whole column is the hit target, exactly like a Guitar Hero fret.
+  One physical tap = one judgement, always with TOO EARLY/TOO LATE feedback.
+- **Latency-forgiving timing:** judgement windows are now asymmetric —
+  early taps capped at ±140ms (no mashing ahead), late taps accepted up to
+  +190ms (touch & Bluetooth audio make by-ear taps land late). PERFECT stays
+  ±45ms, GREAT ±90ms.
+- **Bigger, brighter pads:** filled rings (50% alpha, 50px) with white arrow
+  glyphs + under-glow, pulsing on every beat.
+- **Onboarding fix:** the How-to-Play modal no longer auto-opens over the
+  menu (it was intercepting the first START tap) — it's one ❓ tap away.
+- `touch-action: none` on the canvas so taps never scroll/zoom the page.
+
 ## [1.3.2] — 2026-08-07
+
 
 ### Timing Coach
 - The results screen now shows a **TIMING COACH** line whenever taps missed

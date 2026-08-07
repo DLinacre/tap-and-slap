@@ -393,7 +393,7 @@ export class AudioEngine {
       difficulty: "EASY",
       bpm: 116,
       seed: 7,
-      palette: { bg: 0x0a0118, accent: 0xff2ec4, lanes: [0x2f6bff, 0xffd23f, 0xff4d6d, 0x2ee66d] },
+      palette: { bg: 0x0a0118, accent: 0xff2ec4, lanes: [0x4f8bff, 0xffe14d, 0xff6b8a, 0x4df08c] },
       map: previewMap(116),
     };
     this.events = buildSong(previewLevel, trackId).filter((e) => e.timeMs < 16 * (60_000 / 116));

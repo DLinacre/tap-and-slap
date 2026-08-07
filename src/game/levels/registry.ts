@@ -44,7 +44,7 @@ function build(
 const PALETTE_BASE = { bg: 0x0a0118, accent: 0xff2ec4 } as const;
 // v1.2: brightened lane palette (WCAG 1.4.11 ≥3:1 against the bg) — matches
 // the config LANE_COLORS so menu art and gameplay agree.
-const PALETTE_LANES: [number, number, number, number] = [0x3f7bff, 0xffd23f, 0xff5f7a, 0x3ee67c];
+const PALETTE_LANES: [number, number, number, number] = [0x4f8bff, 0xffe14d, 0xff6b8a, 0x4df08c];
 
 // v1.2 tempo pass ("catchy with a good tempo"): 92→100 BPM (danceable
 // warm-up), 112→118 (pop-dance pocket), 132→138 (16th streams that bite).

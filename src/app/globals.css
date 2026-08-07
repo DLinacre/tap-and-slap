@@ -1573,3 +1573,39 @@ button {
   margin-top: 4px;
   color: var(--text);
 }
+
+/* Pre-run countdown (v1.3.3) */
+.hud__countdown {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  text-shadow:
+    0 0 18px rgba(255, 46, 196, 0.9),
+    0 0 42px rgba(255, 46, 196, 0.5),
+    0 4px 0 #000;
+  pointer-events: none;
+  z-index: 12;
+  animation: countdown-pop 0.5s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+.hud__countdown:first-letter {
+  /* no-op, keeps first-letter rule off */
+}
+@keyframes countdown-pop {
+  0% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud__countdown { animation: none; }
+}
+
+/* Canvas must never scroll/zoom the page on touch (hitbox stability). */
+.game-canvas canvas {
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}

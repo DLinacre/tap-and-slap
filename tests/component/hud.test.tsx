@@ -22,6 +22,7 @@ describe("Hud", () => {
         combo: 12,
         maxCombo: 12,
         accuracy: 87.5,
+        countdown: null,
         health: 64,
         judgment: null,
         progress: 0.5,
