@@ -47,3 +47,25 @@ test.describe("Tap & Slap smoke", () => {
     expect(body.db).toBe("up");
   });
 });
+
+test.describe("Tap & Slap content & onboarding", () => {
+  test("level page renders crawlable content", async ({ page }) => {
+    await page.goto("/levels/first-beat");
+    await expect(page.locator("h1")).toContainText("First Beat");
+    await expect(page.getByRole("link", { name: /PLAY FIRST BEAT/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /NEON RAMPAGE/i })).toBeVisible();
+  });
+
+  test("how-to-play modal opens from the menu", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByTestId("menu")).toBeVisible({ timeout: 60_000 });
+    // Close the auto-opened first-visit modal if present, then reopen it.
+    const dialog = page.getByRole("dialog");
+    if (await dialog.isVisible().catch(() => false)) {
+      await dialog.getByRole("button", { name: "Close" }).click();
+    }
+    await page.getByTestId("howto-button").click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("Tap on the beat");
+  });
+});

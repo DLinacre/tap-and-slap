@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { GameCanvas } from "./GameCanvas";
 import { Hud } from "./Hud";
@@ -168,6 +169,9 @@ export function GameShell() {
         {screen !== "playing" && (
           <span>
             Tap the beat. Slap the enemy. Stay alive. ·{" "}
+            <Link href="/levels/first-beat">First Beat</Link> ·{" "}
+            <Link href="/levels/neon-rampage">Neon Rampage</Link> ·{" "}
+            <Link href="/levels/disco-inferno">Disco Inferno</Link> ·{" "}
             <a href="/about">About</a> · <a href="/privacy">Privacy</a>
           </span>
         )}

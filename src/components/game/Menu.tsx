@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { SyncTest } from "@/components/game/SyncTest";
+import { HowToPlayModal } from "@/components/game/HowToPlayModal";
 import { useGameStore } from "@/store/game-store";
 import { useSettingsStore } from "@/store/settings-store";
 import { startRun, uiClick } from "@/lib/client/game-actions";
@@ -41,7 +42,17 @@ export function Menu({ onSignIn }: MenuProps) {
 
   const [selectedSlug, setSelectedSlug] = useState<string | null>(levels[0]?.slug ?? null);
   const [now, setNow] = useState(() => Date.now());
+  const [showHowTo, setShowHowTo] = useState(false);
   const selected = levels.find((l) => l.slug === selectedSlug) ?? levels[0] ?? null;
+
+  // First visit: open the How-to-Play modal once (dismissible, never blocking).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.localStorage.getItem("tas.seenHowTo")) {
+      window.localStorage.setItem("tas.seenHowTo", "1");
+      setShowHowTo(true);
+    }
+  }, []);
 
   // Countdown to midnight UTC for the daily challenge card.
   useEffect(() => {
@@ -185,7 +196,17 @@ export function Menu({ onSignIn }: MenuProps) {
 
       <div className="menu__columns">
         <section className="menu__panel" aria-label="Controls">
-          <h2>CONTROLS</h2>
+          <div className="menu__panel-head">
+            <h2>CONTROLS</h2>
+            <button
+              type="button"
+              className="menu__howto"
+              onClick={() => setShowHowTo(true)}
+              data-testid="howto-button"
+            >
+              ❓ HOW TO PLAY
+            </button>
+          </div>
           <div className="controls-grid">
             <span className="keycap">◀</span><span className="keycap">▼</span>
             <span className="keycap">▲</span><span className="keycap">▶</span>
@@ -261,6 +282,8 @@ export function Menu({ onSignIn }: MenuProps) {
         PERFECT = dead centre, heavies score ×1.5, and an 8× combo is where the big numbers live.
       </p>
       <span className="menu__muted">{baseScoreFor("normal")} pts per note</span>
+
+      {showHowTo && <HowToPlayModal onClose={() => setShowHowTo(false)} />}
     </div>
   );
 }

@@ -4,7 +4,21 @@ All notable changes to Tap & Slap are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] — 2026-08-07
+
+### Onboarding & SEO
+- **How to Play** modal: opens automatically on your first visit and is
+  always one tap away (❓ HOW TO PLAY in Controls). Covers lanes, timing
+  windows, Sync Test and Practice mode.
+- **Crawlable level pages** — /levels/first-beat, /levels/neon-rampage,
+  /levels/disco-inferno: server-rendered title/meta/JSON-LD, stats (BPM,
+  notes, duration, max score), PLAY deep-link and cross-links between
+  levels; added to the sitemap and the in-game footer. SEO surface for the
+  long-tail ("rhythm game", "tap game", per-level queries).
+- Deployment guide (DEPLOYMENT.md): Neon + Vercel + migrate steps.
+
 ## [1.3.0] — 2026-08-07
+
 
 ### Timing Sync Test (auto-calibration)
 - New "RUN SYNC TEST" in Settings: 8 metronome beats, tap along, and the
