@@ -55,6 +55,12 @@ All notable changes to Tap & Slap are documented here. Format follows
   fallback) that posts your score and a `?level=` challenge link.
 - `?level=<slug>` deep links start a real run straight from the URL.
 
+### Infrastructure: PostgreSQL
+- Moved from SQLite to **PostgreSQL** — SQLite files can't persist across
+  Vercel serverless instances, which caused the production `db: down` state
+  (register/leaderboard 500s). Fresh Postgres migration, seed verified, CI
+  now tests against a Postgres 17 service container.
+
 ## [1.1.0] — 2026-08-03
 
 ### Art rework & clarity pass

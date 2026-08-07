@@ -98,7 +98,8 @@ satisfying "pump" feel.
 git clone https://github.com/DLinacre/tap-and-slap.git
 cd tap-and-slap
 npm install
-cp .env.example .env          # set AUTH_SECRET (dev fallback exists)
+cp .env.example .env          # set DATABASE_URL (Postgres — Neon/Supabase free tier)
+                              # and AUTH_SECRET (dev fallback exists)
 npm run db:setup              # migrate + seed (levels, demo user, sample runs)
 npm run dev                   # → http://localhost:3000
 ```
