@@ -10,7 +10,7 @@
  * next/font's injected <style> cannot use nonces.
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 /** Edge-safe UUID (Web Crypto is available on Edge + Node ≥ 19). */
 function nonce(): string {
@@ -33,7 +33,7 @@ const CSP = (nonce: string) =>
     "form-action 'self'",
   ].join("; ");
 
-export function middleware(_request: NextRequest) {
+export function middleware() {
   if (process.env.NODE_ENV !== "production") return NextResponse.next();
 
   const n = nonce();
