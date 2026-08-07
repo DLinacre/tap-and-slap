@@ -7,7 +7,6 @@ import { leaderboardQuerySchema, parseJsonBody, scoreSubmitSchema } from "@/lib/
 import { getLevelDef, getLevelMeta } from "@/game/levels/registry";
 import { resolveLevelId } from "@/lib/services/level-service";
 import { recordScore, fetchLeaderboardRows, toLeaderboardEntries } from "@/lib/services/score-service";
-import { prisma } from "@/lib/db";
 import { LeaderboardEntry, SubmitScoreResponse } from "@/types/api";
 
 /**

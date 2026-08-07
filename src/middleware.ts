@@ -33,7 +33,7 @@ const CSP = (nonce: string) =>
     "form-action 'self'",
   ].join("; ");
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   if (process.env.NODE_ENV !== "production") return NextResponse.next();
 
   const n = nonce();
