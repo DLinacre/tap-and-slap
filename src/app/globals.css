@@ -1239,3 +1239,79 @@ button {
 .info-page__back {
   margin-top: 20px;
 }
+
+/* =============================================================================
+   v1.2 — comic-action pass + accessibility polish
+   ========================================================================== */
+
+/* Visually hidden but available to screen readers (aria-live region). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Comic-panel level cards: heavier ink border + hard offset shadow. */
+.level-card {
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+}
+.level-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.55);
+}
+.level-card--selected {
+  border-color: var(--pink);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5), 0 0 18px rgba(255, 46, 196, 0.3);
+}
+
+/* Halftone texture overlay on the menu (comic print, over the neon). */
+.menu::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1.4px);
+  background-size: 7px 7px;
+  mix-blend-mode: overlay;
+}
+
+/* Grade slam-in: comic impact, not a soft fade. */
+@keyframes grade-slam {
+  0% {
+    transform: scale(3) rotate(-14deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.92) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.results__grade {
+  animation: grade-slam 0.42s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+/* Touch targets: never smaller than 44px (WCAG 2.2 2.5.8). */
+.neon-btn {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+.hud__pause {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

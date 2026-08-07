@@ -229,8 +229,10 @@ function playPad(v: VoiceCtx, when: number, note: number, until: number): void {
 // Engine
 // ---------------------------------------------------------------------------
 
-const LOOKAHEAD_MS = 150;
+const LOOKAHEAD_MS = 250;
 const TICK_MS = 25;
+/** Max device output latency we compensate for (ms). */
+const MAX_LATENCY_MS = 200;
 
 export class AudioEngine {
   private ctx: AudioContext | null = null;
@@ -244,6 +246,9 @@ export class AudioEngine {
   private timer: ReturnType<typeof setInterval> | null = null;
   /** AudioContext time corresponding to song time 0 (absolute ctx clock). */
   private ctxBase = 0;
+  /** Device output latency in ms — subtracted from scheduling so the beat is
+   *  HEARD exactly when the visual hit line is reached. */
+  private latencyMs = 0;
   private musicPlaying = false;
   private barMs = 2000; // set per level on startMusic
 
@@ -256,6 +261,16 @@ export class AudioEngine {
           (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (!Ctor) return false;
         this.ctx = new Ctor();
+        // Output latency (Bluetooth/WASAPI/etc.) is the gap between a
+        // scheduled ctx time and when the sound actually reaches the ear.
+        // We compensate for it in scheduleEvent so the heard beat aligns with
+        // the visual hit line — otherwise every by-ear tap lands late.
+        this.latencyMs = Math.min(
+          MAX_LATENCY_MS,
+          Math.max(0, ((this.ctx as AudioContext & { outputLatency?: number }).outputLatency ??
+            (this.ctx as AudioContext & { baseLatency?: number }).baseLatency ??
+            0) * 1000),
+        );
         this.noise = noiseBuffer(this.ctx);
 
         // Master chain: gain → compressor → limiter → destination.
@@ -401,10 +416,16 @@ export class AudioEngine {
 
   private scheduleEvent(ev: SongEvent): void {
     if (!this.ctx || !this.musicBus) return;
-    // Absolute ctx time — always >= ctxBase > 0. Guard added as
-    // defense-in-depth: never schedule into the past.
-    const when = this.ctxBase + ev.timeMs / 1000;
-    if (when < 0) return;
+    // Absolute ctx time — always >= ctxBase > 0.
+    //
+    // Sync model: `ctxBase = ctx.currentTime + 0.05`, so song time X is
+    // *scheduled* at ctxBase + X/1000 (50ms after song start on the wall
+    // clock). To make it *heard* at exactly song start + X/1000, we subtract
+    // both that 50ms headroom and the device output latency.
+    const when = Math.max(
+      this.ctx.currentTime,
+      this.ctxBase + (ev.timeMs - 50 - this.latencyMs) / 1000,
+    );
     const vel = ev.velocity ?? 0.8;
     switch (ev.kind) {
       case "kick":

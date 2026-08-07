@@ -23,5 +23,12 @@ export function GameCanvas() {
     };
   }, []);
 
-  return <div ref={hostRef} className="game-canvas" role="img" aria-label="Tap & Slap game area" />;
+  return (
+    <div
+      ref={hostRef}
+      className="game-canvas"
+      role="application"
+      aria-label="Tap & Slap game — four lanes. Tap a pad, tap an enemy, or press the arrow keys / WASD on the beat."
+    />
+  );
 }

@@ -42,7 +42,12 @@ function build(
 }
 
 const PALETTE_BASE = { bg: 0x0a0118, accent: 0xff2ec4 } as const;
+// v1.2: brightened lane palette (WCAG 1.4.11 ≥3:1 against the bg) — matches
+// the config LANE_COLORS so menu art and gameplay agree.
+const PALETTE_LANES: [number, number, number, number] = [0x3f7bff, 0xffd23f, 0xff5f7a, 0x3ee67c];
 
+// v1.2 tempo pass ("catchy with a good tempo"): 92→100 BPM (danceable
+// warm-up), 112→118 (pop-dance pocket), 132→138 (16th streams that bite).
 const LEVELS: LevelDef[] = [
   build(
     "first-beat",
@@ -50,8 +55,8 @@ const LEVELS: LevelDef[] = [
     "Tap & Slap Records",
     "A gentle warm-up. Learn the lanes and feel the beat — every enemy dies on the downbeat.",
     "EASY",
-    { seed: 1337, bpm: 92, density: 1 },
-    { ...PALETTE_BASE, lanes: [0x2f6bff, 0xffd23f, 0xff4d6d, 0x2ee66d] },
+    { seed: 1337, bpm: 100, density: 1 },
+    { ...PALETTE_BASE, lanes: PALETTE_LANES },
     "thunder",
   ),
   build(
@@ -60,8 +65,8 @@ const LEVELS: LevelDef[] = [
     "Tap & Slap Records",
     "The city heats up. Streams, chords and jack patterns keep your thumbs honest.",
     "NORMAL",
-    { seed: 4242, bpm: 112, density: 2 },
-    { ...PALETTE_BASE, lanes: [0x2f6bff, 0xffd23f, 0xff4d6d, 0x2ee66d] },
+    { seed: 4242, bpm: 118, density: 2 },
+    { ...PALETTE_BASE, lanes: PALETTE_LANES },
     "inferno",
   ),
   build(
@@ -70,8 +75,8 @@ const LEVELS: LevelDef[] = [
     "Tap & Slap Records",
     "Maximum density. Sixteenth-note streams, heavy brutes and a final boss bar.",
     "HARD",
-    { seed: 9001, bpm: 132, density: 3 },
-    { ...PALETTE_BASE, lanes: [0x2f6bff, 0xffd23f, 0xff4d6d, 0x2ee66d] },
+    { seed: 9001, bpm: 138, density: 3 },
+    { ...PALETTE_BASE, lanes: PALETTE_LANES },
     "iron",
   ),
 ];

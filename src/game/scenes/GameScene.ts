@@ -71,6 +71,18 @@ const JUDGMENT_COLOR: Record<JudgmentType, number> = {
   miss: MISS_COLOR,
 };
 
+/**
+ * Comic-book kill words. Judgements keep their own labels (PERFECT!/GREAT/
+ * GOOD/MISS) — these are the onomatopoeia bursts on top of every kill
+ * ("BANGING!" rather than "BANG" — comic punch, not plain impact).
+ */
+const COMIC_KILL_WORDS = ["BANGING!", "SLAP!", "WHAM!", "KRAK!", "BOOM!", "THWACK!"];
+
+/** WCAG 2.2 2.3.3 — respect the OS "reduce motion" preference in-canvas. */
+const prefersReducedMotion = (): boolean =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
 export class GameScene extends Phaser.Scene {
   private level: LevelDef | null = null;
   private options: RunOptions = {};
@@ -83,6 +95,7 @@ export class GameScene extends Phaser.Scene {
 
   private grid!: Phaser.GameObjects.Graphics;
   private laneLines!: Phaser.GameObjects.Graphics;
+  private laneGlows: Phaser.GameObjects.Rectangle[] = [];
   private persp!: Phaser.GameObjects.Graphics;
   private hitZone!: Phaser.GameObjects.Graphics;
   private hurtFlash!: Phaser.GameObjects.Rectangle;
@@ -104,6 +117,8 @@ export class GameScene extends Phaser.Scene {
   private sun: Phaser.GameObjects.Image | null = null;
   private stars: Phaser.GameObjects.Image[] = [];
   private vignette: Phaser.GameObjects.Image | null = null;
+  private comicWordIdx = 0;
+  private laneGlowTimer: Phaser.Time.TimerEvent | null = null;
 
   constructor() {
     super("Game");
@@ -123,6 +138,7 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor(BG_COLOR);
     this.buildBackground();
+    this.makeBurstTexture();
 
     // Race-free idle reconciliation (see setIdle docs).
     if (this.idleTimer === null) {
@@ -241,15 +257,26 @@ export class GameScene extends Phaser.Scene {
     }
 
     // --- Lane columns: brighter toward the hit zone (readability) -------------
+    // v1.2: raised every segment's alpha so all four lanes pass WCAG 1.4.11
+    // (≥3:1) against the background — the middle lanes no longer read as dim.
     this.laneLines = this.add.graphics().setDepth(2);
     for (let lane = 0; lane < LANE_COUNT; lane++) {
       const x = laneX(lane);
       const color = laneColor(lane);
       for (let y = 0; y < HIT_Y; y += 40) {
         const t = y / HIT_Y;
-        this.laneLines.lineStyle(2, color, 0.1 + t * 0.3);
+        this.laneLines.lineStyle(3, color, 0.24 + t * 0.45);
         this.laneLines.lineBetween(x, y, x, Math.min(y + 40, HIT_Y));
       }
+    }
+
+    // --- Per-lane approach glow: a lane brightens while a note is inbound ---
+    this.laneGlows = [];
+    for (let lane = 0; lane < LANE_COUNT; lane++) {
+      const glow = this.add
+        .rectangle(laneX(lane), HIT_Y / 2, 118, HIT_Y, laneColor(lane), 0)
+        .setDepth(1.9);
+      this.laneGlows.push(glow);
     }
 
     // --- Glowing target rings (where the beat lands) --------------------------
@@ -267,7 +294,7 @@ export class GameScene extends Phaser.Scene {
     this.hitZone = this.add.graphics().setDepth(3);
     for (let lane = 0; lane < LANE_COUNT; lane++) {
       const x = laneX(lane);
-      this.hitZone.lineStyle(2, laneColor(lane), 0.5);
+      this.hitZone.lineStyle(3, laneColor(lane), 0.85);
       this.hitZone.lineBetween(x - 34, HIT_Y, x + 34, HIT_Y);
     }
 
@@ -471,6 +498,22 @@ export class GameScene extends Phaser.Scene {
     this.player.idle(now);
     this.pads.tick();
 
+    // --- Lane approach glow: brighten a lane while a note is inbound ----------
+    for (let lane = 0; lane < LANE_COUNT; lane++) {
+      const incoming = this.notes.some(
+        (ns) =>
+          !ns.judged &&
+          ns.note.lane === lane &&
+          now < ns.timeMs &&
+          ns.timeMs - now <= beatMs,
+      );
+      const glow = this.laneGlows[lane];
+      if (glow) {
+        const target = incoming ? 0.16 : 0;
+        glow.setAlpha(glow.alpha + (target - glow.alpha) * 0.25);
+      }
+    }
+
     // Star twinkle (cheap: 70 sprites, sin alpha).
     for (let i = 0; i < this.stars.length; i++) {
       const star = this.stars[i];
@@ -519,24 +562,63 @@ export class GameScene extends Phaser.Scene {
   // Input handling
   // ---------------------------------------------------------------------------
 
-  private handlePointerTap(pointer: Phaser.Input.Pointer): void {
-    const now = this.clock.elapsedMs();
-    // Direct enemy tap: hit-test against active enemies within the window.
+  /** Lane index for a screen x (or -1 outside the track). */
+  private laneForX(x: number): number {
+    if (x < 120) return 0;
+    if (x < 240) return 1;
+    if (x < 360) return 2;
+    if (x < 480) return 3;
+    return -1;
+  }
+
+  /** Nearest unjudged note in a lane regardless of timing window. */
+  private nearestNoteInLane(lane: number, nowMs: number): ActiveNote | null {
+    let best: ActiveNote | null = null;
+    let bestDelta = Infinity;
     for (const ns of this.notes) {
-      if (ns.judged || !ns.enemy) continue;
+      if (ns.judged || ns.note.lane !== lane) continue;
+      const delta = Math.abs(nowMs - ns.timeMs);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        best = ns;
+      }
+    }
+    return best;
+  }
+
+  private handlePointerTap(pointer: Phaser.Input.Pointer): void {
+    // A pad zone already consumed this exact tap (zones fire before the
+    // scene-level pointerdown) — one physical tap = one judgement.
+    if (pointer.id === this.pads.lastConsumedPointerId) return;
+    const now = this.clock.elapsedMs();
+    const lane = this.laneForX(pointer.x);
+    if (lane === -1) return;
+
+    // Direct enemy tap: hit-test enemies ONLY inside the tapped lane's
+    // column (v1.1 could judge a note in a neighbouring lane).
+    let best: ActiveNote | null = null;
+    let bestDelta = Infinity;
+    for (const ns of this.notes) {
+      if (ns.judged || !ns.enemy || ns.note.lane !== lane) continue;
       if (!isWithinWindow(ns.timeMs, now)) continue;
       const dx = pointer.x - ns.enemy.x;
       const dy = pointer.y - ns.enemy.y;
-      if (dx * dx + dy * dy <= ns.enemy.hitRadius * ns.enemy.hitRadius) {
-        const result = judgeNote(ns.timeMs, now);
-        ns.judged = true;
-        this.applyJudgment(result.type, ns);
-        ns.enemy.die();
-        ns.enemy = null;
-        return;
+      const r = ns.enemy.hitRadius;
+      if (dx * dx + dy * dy > r * r) continue;
+      const delta = Math.abs(now - ns.timeMs);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        best = ns;
       }
     }
-    // Fall back to lane pads (HitPads zones already handle pad taps).
+    if (!best || !best.enemy) return; // pad zones handle taps below the line
+
+    const enemy = best.enemy;
+    const result = judgeNote(best.timeMs, now);
+    best.judged = true;
+    this.applyJudgment(result.type, best);
+    enemy.die();
+    best.enemy = null;
   }
 
   /**
@@ -561,7 +643,20 @@ export class GameScene extends Phaser.Scene {
       }
     }
     if (!best) {
-      // Empty press: tiny feedback on the pad only.
+      // No hittable note: never a silent miss. Tell the player WHY — the
+      // pad flash above already happened; add a directional hint so the
+      // hitbox never feels like it "lied".
+      const nearest = this.nearestNoteInLane(lane, now);
+      if (nearest && Math.abs(now - nearest.timeMs) <= 700) {
+        const delta = now - nearest.timeMs;
+        this.popup(
+          delta < 0 ? "TOO EARLY" : "TOO LATE",
+          laneX(lane),
+          HIT_Y - 60,
+          delta < 0 ? 0x38bdf8 : 0xfb923c,
+          18,
+        );
+      }
       return;
     }
 
@@ -592,19 +687,30 @@ export class GameScene extends Phaser.Scene {
       audioEngine.miss();
       this.popup(JUDGMENT_LABEL.miss, x, HIT_Y - 70, MISS_COLOR);
       this.player.hurt();
-      this.cameras.main.shake(140, 0.006);
-      this.tweens.add({
-        targets: this.hurtFlash,
-        fillAlpha: 0.28,
-        duration: 90,
-        yoyo: true,
-        onComplete: () => this.hurtFlash.setFillStyle(MISS_COLOR, 0),
-      });
+      if (!prefersReducedMotion()) {
+        this.cameras.main.shake(140, 0.006);
+        this.tweens.add({
+          targets: this.hurtFlash,
+          fillAlpha: 0.28,
+          duration: 90,
+          yoyo: true,
+          onComplete: () => this.hurtFlash.setFillStyle(MISS_COLOR, 0),
+        });
+      }
     } else {
       if (type === "perfect") audioEngine.slap(heavy);
       else audioEngine.slap(false);
 
+      // Comic-book kill: judgement label (PERFECT!/GREAT/GOOD) + a rotated
+      // onomatopoeia burst ("BANGING!", "SLAP!", …) on top of every kill.
       this.popup(JUDGMENT_LABEL[type], x, HIT_Y - 70, JUDGMENT_COLOR[type]);
+      this.comicPopup(
+        COMIC_KILL_WORDS[this.comicWordIdx % COMIC_KILL_WORDS.length]!,
+        x,
+        HIT_Y - 104,
+        type === "perfect" ? PERFECT_COLOR : type === "great" ? GREAT_COLOR : GOOD_COLOR,
+      );
+      this.comicWordIdx += 1;
       this.killEmitter.explode(heavy ? 20 : 12, x, HIT_Y - 20);
 
       // PERFECT juice: sparkle chime + expanding shockwave ring.
@@ -790,6 +896,11 @@ export class GameScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(8);
+    if (prefersReducedMotion()) {
+      // Static, motion-free announcement (still fades out so the HUD clears).
+      this.time.delayedCall(450, () => t.destroy());
+      return;
+    }
     this.tweens.add({
       targets: t,
       y: y - 46,
@@ -798,6 +909,91 @@ export class GameScene extends Phaser.Scene {
       duration: 520,
       ease: "Cubic.easeOut",
       onComplete: () => t.destroy(),
+    });
+  }
+
+  /** Procedural 8-point starburst texture (comic "POW!" burst, no assets). */
+  private makeBurstTexture(): void {
+    if (this.textures.exists("comic-burst")) return;
+    const g = this.add.graphics();
+    const cx = 80;
+    const cy = 80;
+    const spikes = 8;
+    const outer = 78;
+    const inner = 46;
+    g.fillStyle(0xffffff, 1);
+    g.beginPath();
+    for (let i = 0; i < spikes * 2; i++) {
+      const r = i % 2 === 0 ? outer : inner;
+      const a = (Math.PI * i) / spikes - Math.PI / 2;
+      const px = cx + Math.cos(a) * r;
+      const py = cy + Math.sin(a) * r;
+      if (i === 0) g.moveTo(px, py);
+      else g.lineTo(px, py);
+    }
+    g.closePath();
+    g.fillPath();
+    g.generateTexture("comic-burst", 160, 160);
+    g.destroy();
+  }
+
+  /**
+   * Comic-book burst popup: starburst behind bold ink-outlined text, tilted
+   * for action-comic energy. Used for kill onomatopoeia (BANGING!/SLAP!/…).
+   */
+  private comicPopup(
+    text: string,
+    x: number,
+    y: number,
+    color: number,
+    size = 26,
+  ): void {
+    const rotation = Phaser.Math.DegToRad(Phaser.Math.Between(-7, 7));
+    const burst = this.add
+      .image(x, y - 6, "comic-burst")
+      .setDepth(7)
+      .setTint(color)
+      .setScale(0.5)
+      .setAlpha(0.95)
+      .setRotation(rotation);
+    const label = this.add
+      .text(x, y, text, {
+        fontFamily: '"Orbitron", monospace',
+        fontSize: `${size}px`,
+        fontStyle: "900",
+        color: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 7,
+      })
+      .setOrigin(0.5)
+      .setDepth(8)
+      .setRotation(rotation);
+
+    if (prefersReducedMotion()) {
+      this.time.delayedCall(480, () => {
+        burst.destroy();
+        label.destroy();
+      });
+      return;
+    }
+
+    this.tweens.add({
+      targets: burst,
+      scale: 0.95,
+      alpha: 0,
+      y: y - 34,
+      duration: 460,
+      ease: "Back.easeOut",
+      onComplete: () => burst.destroy(),
+    });
+    this.tweens.add({
+      targets: label,
+      scale: { from: 0.7, to: 1.05 },
+      alpha: 0,
+      y: y - 26,
+      duration: 460,
+      ease: "Back.easeOut",
+      onComplete: () => label.destroy(),
     });
   }
 }

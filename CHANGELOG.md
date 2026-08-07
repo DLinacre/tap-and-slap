@@ -4,6 +4,52 @@ All notable changes to Tap & Slap are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-08-07
+
+### Gameplay: the hitbox finally tells the truth
+- **Pads now sit ON the hit line** (y=660, was y=750 — 90px below where
+  enemies die), so tapping where the enemy lands always registers. Interactive
+  zones are taller (300px column per lane) and tapping an enemy now judges
+  only that enemy's lane.
+- **One physical tap = one judgement.** Pad zones mark the pointer as
+  consumed; the fallback enemy-tap handler no longer double-judges or
+  cross-lane hits.
+- **Never a silent miss:** empty presses now show TOO EARLY / TOO LATE with
+  a pad flash, so the game always explains why a tap didn't count.
+- **Audio/visual sync fix:** the music scheduler now compensates for device
+  output latency and its own lookahead — the beat you HEAR lands exactly on
+  the line you SEE. PERFECT is now achievable by ear.
+- **Keyboard auto-repeat guard:** holding a key can no longer machine-gun notes.
+- GOOD window widened 135ms → 150ms (more forgiving, Guitar-Hero-adjacent).
+
+### Comic-action style ("PERFECT!" not "POW", "BANGING!" not "BANG")
+- Every kill pops a rotated comic starburst with onomatopoeia
+  (BANGING! / SLAP! / WHAM! / KRAK! / BOOM! / THWACK!) beside the judgement
+  label; judgements stay PERFECT!/GREAT/GOOD/MISS.
+- Procedural starburst texture (no new assets), comic-panel menu cards with
+  hard offset shadows, halftone overlay, grade slam-in animation.
+
+### Readability & accessibility (WCAG 2.2)
+- **Lane palette brightened** (blue 0x3f7bff, red 0xff5f7a, mint 0x3ee67c) —
+  all four lanes now pass ≥3:1 contrast; lane lines and hit-line are
+  significantly brighter; lanes glow while a note is inbound.
+- **Live region:** screen readers hear judgements + combo milestones
+  (rate-limited, never per-note spam); canvas exposed as role="application".
+- **Modal a11y:** sign-in dialog is role="dialog" + aria-modal with a focus
+  trap and focus restore.
+- **Reduced motion:** in-canvas shake/flash/popups respect
+  prefers-reduced-motion (CSS already did; Phaser now does too).
+- Touch targets ≥44px (pause button, neon buttons).
+
+### Tempo pass ("catchy with a good tempo")
+- First Beat 92 → **100 BPM**, Neon Rampage 112 → **118 BPM**, Disco Inferno
+  132 → **138 BPM** — danceable warm-up, pop-dance pocket, biting 16ths.
+
+### SEO / metadata
+- Canonical link added; OG/Twitter URLs are absolute and request-derived
+  (never localhost); sitemap/robots origin resolution hardened (headers →
+  env → production fallback, ignoring localhost env values).
+
 ## [1.1.0] — 2026-08-03
 
 ### Art rework & clarity pass

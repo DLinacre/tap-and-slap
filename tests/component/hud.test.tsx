@@ -59,7 +59,18 @@ describe("Hud", () => {
       hud: { ...INITIAL_HUD, judgment: { type: "perfect", id: 7 } },
     });
     render(<Hud />);
-    expect(screen.getByText("PERFECT")).toBeInTheDocument();
+    // The visible judgment badge (the sr-only live region also mentions it).
+    expect(screen.getByTestId("hud-judgment")).toHaveTextContent("PERFECT");
+  });
+
+  it("announces judgments via the live region", () => {
+    useGameStore.setState({
+      hud: { ...INITIAL_HUD, judgment: { type: "perfect", id: 9 } },
+    });
+    render(<Hud />);
+    const live = screen.getByLabelText("Game announcements");
+    expect(live).toHaveTextContent("PERFECT");
+    expect(live).toHaveAttribute("aria-live", "polite");
   });
 
   it("pauses via the pause button", () => {

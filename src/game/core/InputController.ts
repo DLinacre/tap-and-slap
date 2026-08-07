@@ -36,6 +36,9 @@ export class InputController {
   }
 
   private handleKeyDown = (event: KeyboardEvent): void => {
+    // Ignore OS key auto-repeat — holding a key must not machine-gun notes
+    // (one physical press = one judgement).
+    if (event.repeat) return;
     // Prevent page scroll on arrow keys / space while playing.
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(event.code)) {
       event.preventDefault();
