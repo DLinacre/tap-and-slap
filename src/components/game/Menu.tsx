@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
+import { SyncTest } from "@/components/game/SyncTest";
 import { useGameStore } from "@/store/game-store";
 import { useSettingsStore } from "@/store/settings-store";
 import { startRun, uiClick } from "@/lib/client/game-actions";
@@ -135,6 +136,14 @@ export function Menu({ onSignIn }: MenuProps) {
           >
             ▶ START
           </NeonButton>
+          <NeonButton
+            variant="ghost"
+            className="menu__start menu__practice"
+            onClick={() => startRun("first-beat", { practice: true })}
+            data-testid="practice-level"
+          >
+            🧘 PRACTICE — NO-FAIL (FIRST BEAT)
+          </NeonButton>
         </div>
       )}
 
@@ -216,6 +225,7 @@ export function Menu({ onSignIn }: MenuProps) {
             />
             <span className="slider-value">{calibrationMs > 0 ? `+${calibrationMs}` : calibrationMs}ms</span>
           </label>
+          <SyncTest />
         </section>
 
         <section className="menu__panel" aria-label="Leaderboard">

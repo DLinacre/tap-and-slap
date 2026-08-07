@@ -486,10 +486,11 @@ export class GameScene extends Phaser.Scene {
         // Miss deadline passed — the enemy reaches the player. The autoplay
         // bot gets a grace extension so headless/CI frame stalls can't
         // produce misses (it then hits with a clamped GOOD judgment).
+        // Practice mode is no-fail: missed notes count as GOOD instead.
         const missDeadline = ns.timeMs + (this.autoplay ? BOT_GRACE_MS : JUDGMENT_WINDOWS.goodMs);
         if (now >= missDeadline) {
           ns.judged = true;
-          this.applyJudgment("miss", ns);
+          this.applyJudgment(this.options.practice ? "good" : "miss", ns);
           ns.enemy = null;
         }
       }
@@ -824,7 +825,8 @@ export class GameScene extends Phaser.Scene {
     const autoplay = this.autoplay;
     const durationMs = this.clock.elapsedMs();
 
-    const isNewBest = !autoplay && maybeSaveLocalBest(level.slug, summary.score);
+    const practice = this.options.practice ?? false;
+    const isNewBest = !autoplay && !practice && maybeSaveLocalBest(level.slug, summary.score);
     const runId = newRunId();
 
     const result = {
@@ -841,16 +843,17 @@ export class GameScene extends Phaser.Scene {
       durationMs,
       isNewBest,
       rank: null,
-      eligible: !autoplay,
+      eligible: !autoplay && !practice,
       submitted: false,
       autoplay,
+      practice,
       runId,
     };
 
     useGameStore.setState({ screen: "gameover", result });
     track("level_completed", { level: level.slug, accuracy: Math.round(summary.accuracy) });
 
-    if (!autoplay && summary.misses < level.map.notes.length) {
+    if (!autoplay && !practice && summary.misses < level.map.notes.length) {
       void this.submitResult(result);
     }
   }

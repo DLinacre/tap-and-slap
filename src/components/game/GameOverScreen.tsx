@@ -3,7 +3,14 @@
 import { useMemo, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { useGameStore } from "@/store/game-store";
-import { quitToMenu, restartRun } from "@/lib/client/game-actions";
+import { getLevels } from "@/game/levels/registry";
+import { quitToMenu, restartRun, startRun } from "@/lib/client/game-actions";
+
+/** Progression ladder for the "UP NEXT" CTA. */
+const NEXT_LEVEL: Record<string, string> = {
+  "first-beat": "neon-rampage",
+  "neon-rampage": "disco-inferno",
+};
 
 interface GameOverScreenProps {
   /** Called after returning to the menu so the leaderboard refreshes. */
@@ -54,6 +61,10 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
   // Judgment breakdown percentages for the proportional bar.
   const total = (result?.perfects ?? 0) + (result?.greats ?? 0) + (result?.goods ?? 0) + (result?.misses ?? 0) || 1;
   const barPct = (n: number) => `${((n / total) * 100).toFixed(1)}%`;
+
+  // "UP NEXT" ladder (hidden for autoplay/practice runs).
+  const nextSlug = result && !result.autoplay && !result.practice ? NEXT_LEVEL[result.levelSlug] : undefined;
+  const nextTitle = nextSlug ? getLevels().find((l) => l.slug === nextSlug)?.title : undefined;
 
   // Confetti for top-tier runs (respects prefers-reduced-motion via CSS).
   const showConfetti = grade.letter === "SSS" || grade.letter === "SS" || grade.letter === "S";
@@ -115,6 +126,7 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
             aria-hidden="true"
           />
         ))}
+        {result.practice && <div className="results__badge">🧘 PRACTICE RUN</div>}
         {result.isNewBest && <div className="results__badge">★ NEW LOCAL BEST ★</div>}
         {result.rank !== null && result.rank <= 10 && (
           <div className="results__badge">TOP {result.rank} ON THE BOARD</div>
@@ -139,11 +151,13 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
         <p className="results__submitted">
           {result.autoplay
             ? "QA autoplay run — not submitted."
-            : result.submitted
-              ? "Score submitted."
-              : player
-                ? "Score saved on this device."
-                : "Signed out — score saved on this device."}
+            : result.practice
+              ? "Practice run — not submitted."
+              : result.submitted
+                ? "Score submitted."
+                : player
+                  ? "Score saved on this device."
+                  : "Signed out — score saved on this device."}
         </p>
 
         <div className="results__actions">
@@ -151,7 +165,7 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
           <NeonButton variant="ghost" onClick={() => { quitToMenu(); onBack(); }}>
             MENU
           </NeonButton>
-          {!result.autoplay && (
+          {!result.autoplay && !result.practice && (
             <NeonButton
               variant="ghost"
               onClick={() => {
@@ -160,6 +174,11 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
               }}
             >
               {shared ? "✓ COPIED" : "⇪ SHARE"}
+            </NeonButton>
+          )}
+          {nextSlug && nextTitle && (
+            <NeonButton variant="ghost" onClick={() => startRun(nextSlug)}>
+              UP NEXT: {nextTitle} →
             </NeonButton>
           )}
         </div>

@@ -57,6 +57,8 @@ export interface GameResult {
   eligible: boolean;
   submitted: boolean;
   autoplay: boolean;
+  /** Practice (no-fail) run — results shown but not submitted. */
+  practice?: boolean;
   /** Client-generated idempotency key for score submission. */
   runId: string;
 }
@@ -64,6 +66,8 @@ export interface GameResult {
 export interface RunOptions {
   autoplay?: boolean;
   qa?: boolean;
+  /** No-fail practice run: misses become GOOD, scores are never submitted. */
+  practice?: boolean;
 }
 
 export interface GameState {

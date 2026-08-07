@@ -4,7 +4,30 @@ All notable changes to Tap & Slap are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-08-07
+
+### Timing Sync Test (auto-calibration)
+- New "RUN SYNC TEST" in Settings: 8 metronome beats, tap along, and the
+  game measures your device's real latency (Bluetooth headphones included)
+  and sets the Offset for you. PERFECT is now achievable by ear on any device.
+
+### Practice mode
+- New 🧘 PRACTICE — NO-FAIL button on the menu: a no-fail First Beat run
+  where missed notes count as GOOD. Results are shown but never submitted,
+  so it's a safe place to learn the lanes before chasing the board.
+
+### Progression
+- Results screen gains an "UP NEXT: <level>" button that jumps straight into
+  the next difficulty after a real (non-practice) run.
+
+### PWA / installability
+- Service worker: repeat visits load near-instantly and the game plays
+  offline (scores already queue to localStorage and flush on reconnect).
+- PNG app icons (192/512 + maskable) and apple-touch-icon added to the
+  manifest; register only in production.
+
 ## [1.2.0] — 2026-08-07
+
 
 ### Gameplay: the hitbox finally tells the truth
 - **Pads now sit ON the hit line** (y=660, was y=750 — 90px below where

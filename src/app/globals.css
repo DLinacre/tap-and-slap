@@ -1315,3 +1315,37 @@ button {
   align-items: center;
   justify-content: center;
 }
+
+/* Timing Sync Test (v1.3) */
+.sync-test {
+  margin-top: 2px;
+}
+.sync-test__btn {
+  flex: 1;
+  min-height: 34px;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  background: rgba(34, 211, 238, 0.08);
+  border-radius: 999px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.sync-test__btn:hover { background: rgba(34, 211, 238, 0.18); }
+.sync-test__btn:active { transform: translateY(1px); }
+.sync-test__detail {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+/* Practice mode entry (v1.3) */
+.menu__practice {
+  font-size: 11px !important;
+  padding: 10px 18px !important;
+}

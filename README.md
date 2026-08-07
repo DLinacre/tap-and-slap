@@ -70,14 +70,17 @@ satisfying "pump" feel.
 ## ✨ Features
 
 - **4-lane dance-mat gameplay** — arrows, WASD, touch pads, or tap enemies directly
-- **Precision rhythm math** — PERFECT ≤ 45 ms · GREAT ≤ 90 ms · GOOD ≤ 135 ms
+- **Precision rhythm math** — PERFECT ≤ 45 ms · GREAT ≤ 90 ms · GOOD ≤ 150 ms, with latency-compensated audio so PERFECT is achievable by ear
+- **Timing Sync Test** — 8-beat auto-calibration in Settings (great for Bluetooth headphones)
+- **Practice mode** — 🧘 no-fail First Beat runs to learn the lanes before chasing the board
 - **Combo depth** — ×8 multiplier ladder, health economy, heavy enemies (×1.5 pts), minis (×0.5)
-- **Perfect-hit juice** — sparkle chimes, expanding shockwaves, "ON FIRE!" streak calls, ascending combo-milestone arpeggios
+- **Perfect-hit juice** — sparkle chimes, expanding shockwaves, comic-action kill bursts (BANGING! / SLAP! / WHAM!), "ON FIRE!" streak calls, ascending combo-milestone arpeggios
 - **Grades** — SSS → D on every run, FLAWLESS for zero misses
-- **3 shipped levels + a Daily Challenge** — *First Beat* (EASY) · *Neon Rampage* (NORMAL) · *Disco Inferno* (HARD), plus a fresh deterministic map every day with its own leaderboard
-- **Synthwave visuals** — sliced sun, twinkling stars, scrolling grid, CRT scanlines, vignette, AI-generated menu art
+- **3 shipped levels + a Daily Challenge** — *First Beat* (EASY) · *Neon Rampage* (NORMAL) · *Disco Inferno* (HARD), plus a fresh deterministic map every day with its own leaderboard; results offer "UP NEXT" progression and share links
+- **Synthwave × comic visuals** — sliced sun, twinkling stars, scrolling grid, CRT scanlines, halftone menu, comic-panel cards
 - **Leaderboards** — guest play with zero sign-up, optional accounts (bcrypt + JWT), server-side anti-cheat integrity checks, offline score queue
-- **Accessibility** — keyboard-only playable, timing calibration, per-channel volume (Master / Music / SFX)
+- **PWA** — installable (manifest + PNG/maskable icons), service worker for near-instant repeat loads and offline play
+- **Accessibility** — keyboard-only playable, timing calibration, per-channel volume (Master / Music / SFX), reduced-motion support
 
 ## 📸 Screenshots
 

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Orbitron } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { getOrigin } from "@/lib/url";
 import "./globals.css";
 
@@ -68,6 +69,11 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [`${origin}/images/og-cover.jpg`],
     },
     robots: { index: true, follow: true },
+    icons: {
+      icon: "/icon.svg",
+      apple: "/apple-touch-icon.png",
+    },
+    manifest: "/manifest.webmanifest",
   };
 }
 
@@ -105,6 +111,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en">
       <body className={orbitron.variable}>
         <Providers>{children}</Providers>
+        <ServiceWorkerRegister />
         <script
           type="application/ld+json"
           nonce={nonce}

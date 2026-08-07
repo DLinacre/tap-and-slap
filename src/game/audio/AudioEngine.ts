@@ -252,6 +252,12 @@ export class AudioEngine {
   private musicPlaying = false;
   private barMs = 2000; // set per level on startMusic
 
+  /** Anchors mapping the performance clock to the AudioContext clock (for
+   *  scheduling one-shot sounds at a specific performance-clock time, e.g.
+   *  the timing sync test). Set when the context is created. */
+  private perfAnchorMs: number | null = null;
+  private ctxAnchor = 0;
+
   /** Create/resume the AudioContext. Must be called from a user gesture. */
   ensureStarted(): boolean {
     try {
@@ -261,6 +267,8 @@ export class AudioEngine {
           (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (!Ctor) return false;
         this.ctx = new Ctor();
+        this.perfAnchorMs = performance.now();
+        this.ctxAnchor = this.ctx.currentTime;
         // Output latency (Bluetooth/WASAPI/etc.) is the gap between a
         // scheduled ctx time and when the sound actually reaches the ear.
         // We compensate for it in scheduleEvent so the heard beat aligns with
@@ -305,7 +313,11 @@ export class AudioEngine {
         this.sfxBus.connect(master);
       }
       if (this.ctx.state === "suspended") void this.ctx.resume();
-      return this.ctx.state === "running";
+      // resume() is asynchronous — the state flips a moment after the call,
+      // so returning `state === "running"` right here would race and report
+      // "audio unavailable" on the very first gesture. Treat an initiated
+      // resume as success; the graph plays once the state flips.
+      return this.ctx.state === "running" || this.ctx.state === "suspended";
     } catch {
       return false;
     }
@@ -321,6 +333,28 @@ export class AudioEngine {
 
   get isRunning(): boolean {
     return this.ctx?.state === "running";
+  }
+
+  /**
+   * Schedule a short metronome click so it is HEARD at (approximately) the
+   * given performance-clock time — the same latency-compensated model used
+   * for gameplay scheduling. Used by the timing Sync Test.
+   */
+  syncClickAt(perfTimeMs: number): void {
+    if (!this.ctx || !this.sfxBus || this.perfAnchorMs === null) return;
+    const when =
+      this.ctxAnchor + (perfTimeMs - this.perfAnchorMs) / 1000 - this.latencyMs / 1000;
+    if (when < this.ctx.currentTime) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(880, when);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(0.22, when + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, when + 0.09);
+    osc.connect(gain).connect(this.sfxBus);
+    osc.start(when);
+    osc.stop(when + 0.1);
   }
 
   private voice(): VoiceCtx {
