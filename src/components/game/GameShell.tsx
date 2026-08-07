@@ -51,6 +51,12 @@ export function GameShell() {
     if (autoplay) {
       const first = [getDailyDef(), ...getLevels()][0];
       if (first) autoStart.current = { slug: first.slug, options: { autoplay: true, qa } };
+    } else {
+      // Deep link: ?level=<slug> (used by share links) starts a real run.
+      const levelParam = params.get("level");
+      if (levelParam && [getDailyDef(), ...getLevels()].some((l) => l.slug === levelParam)) {
+        autoStart.current = { slug: levelParam, options: { autoplay: false, qa: false } };
+      }
     }
 
     // Only probe the session endpoint when a session might exist — avoids a

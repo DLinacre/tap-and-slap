@@ -247,8 +247,8 @@ export function Menu({ onSignIn }: MenuProps) {
       </div>
 
       <p className="menu__tip">
-        Tip: PERFECT = ≤45ms from the beat. Heavy enemies score ×1.5. Misses hurt. Keep the
-        combo alive for an 8× multiplier.
+        Tip: tap when the enemy hits the line — the pad flashes even on TOO EARLY / TOO LATE.
+        PERFECT = dead centre, heavies score ×1.5, and an 8× combo is where the big numbers live.
       </p>
       <span className="menu__muted">{baseScoreFor("normal")} pts per note</span>
     </div>

@@ -50,6 +50,11 @@ All notable changes to Tap & Slap are documented here. Format follows
   (never localhost); sitemap/robots origin resolution hardened (headers →
   env → production fallback, ignoring localhost env values).
 
+### Sharing & deep links
+- Results screen gains a **SHARE** button (Web Share API with clipboard
+  fallback) that posts your score and a `?level=` challenge link.
+- `?level=<slug>` deep links start a real run straight from the URL.
+
 ## [1.1.0] — 2026-08-03
 
 ### Art rework & clarity pass

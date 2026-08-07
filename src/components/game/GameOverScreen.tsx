@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { useGameStore } from "@/store/game-store";
 import { quitToMenu, restartRun } from "@/lib/client/game-actions";
@@ -10,12 +10,30 @@ interface GameOverScreenProps {
   onBack: () => void;
 }
 
+/** Share a run: Web Share API when available, clipboard fallback. */
+async function shareRun(result: NonNullable<ReturnType<typeof useGameStore.getState>["result"]>) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const url = `${origin}/?level=${encodeURIComponent(result.levelSlug)}`;
+  const text = `I scored ${result.score.toLocaleString("en-US")} (${result.accuracy.toFixed(1)}% accuracy) on ${result.levelTitle} in Tap & Slap — think you can beat it on the beat?`;
+  const data = { title: "Tap & Slap", text, url };
+  try {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      await navigator.share(data);
+      return;
+    }
+    await navigator.clipboard.writeText(`${text} ${url}`);
+  } catch {
+    // User cancelled the share sheet or clipboard denied — not an error.
+  }
+}
+
 /**
  * Post-run results: stats grid, personal-best badge, server rank, retry/menu.
  */
 export function GameOverScreen({ onBack }: GameOverScreenProps) {
   const result = useGameStore((s) => s.result);
   const player = useGameStore((s) => s.player);
+  const [shared, setShared] = useState(false);
 
   // NOTE: all hooks must run before the early return (Rules of Hooks).
   const grade =
@@ -133,6 +151,17 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
           <NeonButton variant="ghost" onClick={() => { quitToMenu(); onBack(); }}>
             MENU
           </NeonButton>
+          {!result.autoplay && (
+            <NeonButton
+              variant="ghost"
+              onClick={() => {
+                void shareRun(result);
+                setShared(true);
+              }}
+            >
+              {shared ? "✓ COPIED" : "⇪ SHARE"}
+            </NeonButton>
+          )}
         </div>
       </div>
     </div>
