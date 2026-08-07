@@ -160,6 +160,33 @@ export function GameOverScreen({ onBack }: GameOverScreenProps) {
                   : "Signed out — score saved on this device."}
         </p>
 
+        {!result.autoplay && (result.attemptsEarly + result.attemptsLate > 0) && (
+          <div className="results__timing" data-testid="timing-coach">
+            <span className="results__timing-label">TIMING COACH</span>
+            <p>
+              {result.attemptsEarly + result.attemptsLate} tap
+              {(result.attemptsEarly + result.attemptsLate) === 1 ? "" : "s"} outside the
+              window — {result.attemptsEarly} early, {result.attemptsLate} late
+              {result.avgTimingDeltaMs !== 0 && (
+                <>
+                  {" "}· average{" "}
+                  {result.avgTimingDeltaMs > 0 ? "+" : ""}
+                  {result.avgTimingDeltaMs}ms{" "}
+                  {result.avgTimingDeltaMs > 0 ? "late" : "early"}
+                </>
+              )}
+              .
+            </p>
+            <p className="results__timing-fix">
+              {result.avgTimingDeltaMs > 15
+                ? "💡 You're tapping late — run the Sync Test in Settings to fix it automatically."
+                : result.avgTimingDeltaMs < -15
+                  ? "💡 You're tapping early — run the Sync Test in Settings to fix it automatically."
+                  : "💡 Mostly on the beat — keep tapping when the enemy hits the line."}
+            </p>
+          </div>
+        )}
+
         <div className="results__actions">
           <NeonButton onClick={() => restartRun()}>↻ RETRY</NeonButton>
           <NeonButton variant="ghost" onClick={() => { quitToMenu(); onBack(); }}>

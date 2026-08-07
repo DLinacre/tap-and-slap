@@ -4,7 +4,21 @@ All notable changes to Tap & Slap are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] — 2026-08-07
+
+### Timing Coach
+- The results screen now shows a **TIMING COACH** line whenever taps missed
+  the window: how many were early vs late, the average offset, and a
+  personalised hint ("You're tapping early — run the Sync Test"). Turns
+  "the hitbox lied" into a fixable number.
+
+### Levels hub
+- New `/levels` page: crawlable hub listing all three levels with BPM,
+  notes, duration and max score, plus ItemList schema. Linked from the
+  footer and the sitemap; each card deep-links to its level page.
+
 ## [1.3.1] — 2026-08-07
+
 
 ### Onboarding & SEO
 - **How to Play** modal: opens automatically on your first visit and is

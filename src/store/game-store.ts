@@ -52,6 +52,11 @@ export interface GameResult {
   goods: number;
   misses: number;
   durationMs: number;
+  /** Timing coach: taps outside the window (early = negative delta). */
+  attemptsEarly: number;
+  attemptsLate: number;
+  /** Mean delta of out-of-window taps (ms; negative = tapped early). */
+  avgTimingDeltaMs: number;
   isNewBest: boolean;
   rank: number | null;
   eligible: boolean;

@@ -114,6 +114,10 @@ export class GameScene extends Phaser.Scene {
   private gridOffset = 0;
   private perfectStreak = 0;
   private lastMilestoneCombo = 0;
+  /** Timing coach: counts of taps that missed the window (early/late). */
+  private attemptsEarly = 0;
+  private attemptsLate = 0;
+  private attemptDeltas: number[] = [];
   private sun: Phaser.GameObjects.Image | null = null;
   private stars: Phaser.GameObjects.Image[] = [];
   private vignette: Phaser.GameObjects.Image | null = null;
@@ -324,6 +328,9 @@ export class GameScene extends Phaser.Scene {
     this.autoplay = options.autoplay ?? useSettingsStore.getState().autoplay;
 
     this.notes = level.map.notes.map((note) => ({ note, timeMs: 0, enemy: null, judged: false }));
+    this.attemptsEarly = 0;
+    this.attemptsLate = 0;
+    this.attemptDeltas = [];
     // Precompute absolute hit times (includes calibration).
     this.clock = new BeatClock({ bpm: level.bpm, offsetMs: level.map.offsetMs });
     this.clock.start();
@@ -657,6 +664,10 @@ export class GameScene extends Phaser.Scene {
           delta < 0 ? 0x38bdf8 : 0xfb923c,
           18,
         );
+        // Timing coach: remember how far off the window the tap was.
+        if (this.attemptDeltas.length < 200) this.attemptDeltas.push(delta);
+        if (delta < 0) this.attemptsEarly += 1;
+        else this.attemptsLate += 1;
       }
       return;
     }
@@ -841,6 +852,11 @@ export class GameScene extends Phaser.Scene {
       goods: summary.goods,
       misses: summary.misses,
       durationMs,
+      attemptsEarly: this.attemptsEarly,
+      attemptsLate: this.attemptsLate,
+      avgTimingDeltaMs: this.attemptDeltas.length
+        ? Math.round(this.attemptDeltas.reduce((a, b) => a + b, 0) / this.attemptDeltas.length)
+        : 0,
       isNewBest,
       rank: null,
       eligible: !autoplay && !practice,
