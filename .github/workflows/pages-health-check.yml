@@ -1,0 +1,23 @@
+name: GitHub Pages Health Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check published GitHub Pages site
+        run: |
+          set -euo pipefail
+          URL="https://dlinacre.github.io/tap-and-slap/"
+          echo "Checking $URL"
+          code=$(curl -L -sS -o /tmp/page.html -w "%{http_code}" "$URL")
+          echo "HTTP $code"
+          test "$code" = "200"
+          test -s /tmp/page.html
